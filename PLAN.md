@@ -53,7 +53,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Builder: Tester's suite committed unchanged as `59863b6` (step 3 is the Tester's to tick).
 - 2026-10-14 Builder: runtime prompt lives at `backend/transactions/prompts/categorise.md`, not
   `docs/prompts/` as NOTES says — the Docker build context is `backend/`, so docs/ is not in the image.
-  `docs/prompts/` keeps the AI-coding-tool prompts; README will link both. Needs Lead OK.
+  `docs/prompts/` keeps the AI-coding-tool prompts; README will link both. **Approved by Lead 2026-10-14.**
 - 2026-10-14 Builder: LLM call uses `claude-haiku-5-5` with thinking disabled and a JSON-schema
   enum of the 10 categories (`output_config.format`). Live smoke test on the 20 sample
   descriptions + 2 extras + 1 prompt-injection string: 23/23 matched the rules table, 1.1–2.8 s each.
@@ -76,7 +76,6 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   Already implemented in `8c1f8a8`; Tester to add coverage.
 
 ## Open questions for Lead
-- OK to keep the runtime prompt in `backend/transactions/prompts/` (deviation from NOTES)?
 - Admin slice: action identifiers and issue-code filter parameter, so the Tester can write tests.
 - Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
 
