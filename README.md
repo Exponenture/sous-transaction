@@ -197,11 +197,13 @@ It also suits the problem:
 ## Tests
 
 `make test` runs pytest against Postgres plus a missing-migrations check; CI runs the same on
-every PR. The suite is black-box contract tests written from `NOTES.md` by a separate AI agent
-(see below), not from the implementation:
+every PR. Integration tests exercise HTTP and PostgreSQL. A small unit suite calls the pure
+validation, keyword-rule and JSON-equality functions directly, without HTTP, database access
+or AI calls. Expected behaviour comes from `NOTES.md` rather than implementation details:
 
 | File | Covers |
 |---|---|
+| `tests/test_transaction_units.py` | Pure validation, decimal failures, DST, keyword precedence and JSON equality (31 cases) |
 | `tests/test_transaction_submission.py` | Response contract, normalisation, every blocking rule, issue accumulation, timestamps and DST |
 | `tests/test_transaction_retrieval.py` | Replay and 409, per-owner keys, auth on every endpoint, cross-user 404, filters, ordering, pagination, 405s |
 | `tests/test_transaction_integrity.py` | DB constraints, owner protection, concurrent identical submissions |
@@ -209,6 +211,21 @@ every PR. The suite is black-box contract tests written from `NOTES.md` by a sep
 | `tests/test_transaction_admin.py` | Review permissions, approve/reject, re-validation, filters, read-only raw payload |
 
 The LLM is mocked in tests; no test needs an API key or network.
+
+Measured on 2026-10-14: **97.38% statement coverage**, **95.71% branch coverage**
+(**97.05% combined**) across `core` and `transactions`. Tests and generated migrations
+are excluded; project configuration and Docker smoke execution are outside this measurement.
+The full suite contains 289 passing cases. Coverage is a measurement, not a claim that
+all input combinations have been tested.
+
+`make test` prints uncovered lines and generates `backend/coverage.json` and
+`backend/coverage.xml` via pytest-cov. Both CI systems retain the reports. To run only
+pure unit tests without connecting to PostgreSQL:
+
+```bash
+cd backend
+.venv/bin/pytest tests/test_transaction_units.py --no-cov
+```
 
 ## How AI tools were used
 

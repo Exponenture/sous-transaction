@@ -1,7 +1,7 @@
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["test_*.py"]
-addopts = "-q --reuse-db"
+addopts = "-q --reuse-db --cov=core --cov=transactions --cov-branch --cov-report=term-missing --cov-report=json:coverage.json --cov-report=xml:coverage.xml"
 
 [tool.ruff]
 line-length = 100
@@ -14,3 +14,9 @@ ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S105", "S106"]
+
+[tool.coverage.run]
+omit = ["*/tests/*", "*/migrations/*"]
+
+[tool.coverage.report]
+precision = 2

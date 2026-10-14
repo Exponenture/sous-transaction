@@ -23,6 +23,9 @@ definitions:
           - ruff check . && ruff format --check .
           - pytest
           - python manage.py makemigrations --check --dry-run
+        artifacts:
+          - backend/coverage.xml
+          - backend/coverage.json
     - step: &docker-smoke
         name: Docker Compose smoke
         image: docker:27-cli

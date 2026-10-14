@@ -7,3 +7,9 @@ __pycache__/
 staticfiles/
 .DS_Store
 *.log
+
+# Generated test coverage reports
+.coverage
+coverage.json
+coverage.xml
+htmlcov/

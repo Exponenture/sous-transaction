@@ -89,3 +89,16 @@ rejection before field validation or existing-key conflicts. Rejections assert
 400 validation_error, no provider construction and no new rows. Identical
 sanitised keys in separate objects remain valid. Fixtures are small synthetic
 payloads; no CSV or full dataset is used.
+
+## Pure unit suite and coverage
+
+`test_transaction_units.py` contains 31 direct pure-function cases derived from
+NOTES.md: validation/normalisation, invalid decimals, accumulating issues, relative
+time, DST, rules and JSON equality. It has no database marker or HTTP fixture;
+pytest-django forbids accidental database access. Run with `--no-cov` for a quick
+standalone check. Fixtures are small synthetic inputs.
+
+pytest-cov reports statements and branches for core/transactions, excluding tests
+and generated migrations, in terminal, XML and JSON; CI retains reports. README
+records the measured full-suite coverage and its scope. No arbitrary coverage
+threshold has been added.

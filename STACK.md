@@ -31,6 +31,7 @@ What each piece is and why it's here. Versions are pinned in `backend/requiremen
 | Package | What it does |
 |---|---|
 | pytest | Test runner |
+| pytest-cov | Measures application statement and branch coverage; pytest alone does not report it |
 | pytest-django | Lets pytest use Django: test database, `settings` and client fixtures |
 | factory_boy | Builds test data (users and app models) with sensible defaults |
 | ruff | Linter + formatter for Python (replaces flake8, isort, black) |
