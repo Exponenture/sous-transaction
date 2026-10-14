@@ -96,7 +96,7 @@ assumption and leave the row categorised.
 
 | Severity | Codes |
 |---|---|
-| Blocking | `missing_field`, `invalid_amount` (not finite, > 2 dp, ≥ 10¹²), `zero_amount`, `invalid_timestamp`, `future_timestamp` (> now + 5 min), `nonexistent_local_time` (DST gap), `invalid_transaction_type`, `sign_type_mismatch` (debit must be negative, credit positive), `invalid_currency`, `invalid_account_number`, `invalid_description`, `invalid_transaction_id` |
+| Blocking | `missing_field`, `invalid_amount` (not finite, > 2 dp, ≥ 10¹²), `zero_amount`, `invalid_timestamp`, `future_timestamp` (> now + 5 min), `nonexistent_local_time` (DST gap), `invalid_transaction_type`, `sign_type_mismatch` (debit must be negative, credit positive), `invalid_currency`, `invalid_account_number`, `invalid_description`, `invalid_transaction_id`, `unsupported_character` (U+0000, which PostgreSQL can't store, replaced with U+FFFD) |
 | Warning | `ambiguous_local_time` (DST overlap, first occurrence assumed), `categorisation_fallback` (AI unavailable, rules used) |
 
 A field sent as the wrong JSON type (e.g. `"description": 123`) gets that field's `invalid_*` code;
@@ -117,7 +117,8 @@ sign that contradicts the type, and every timestamp lacks a timezone.
    code. Thinking off, `max_tokens=256`, 5 s timeout, no retries.
 3. **Keyword rules** if Claude fails for any reason (no key, timeout, API error, refusal, malformed
    or off-list answer): case-insensitive whole-word matches, first category wins, else
-   Miscellaneous. The row gets a `categorisation_fallback` warning.
+   Miscellaneous. Money-movement words (salary, transfer, refund, ATM, credit card) are checked
+   first, so "Salary from School Employer" stays Miscellaneous. The row gets a `categorisation_fallback` warning.
 
 Quarantined rows are categorised too, so a reviewer starts from a suggestion.
 
