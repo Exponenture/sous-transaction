@@ -52,7 +52,7 @@ own transactions; anyone else's id returns 404. Errors always have the shape
 
 | Method | Path | Result |
 |---|---|---|
-| `POST` | `/api/transactions/` | **201** new row (categorised or quarantined) · **200** identical replay · **409** same `transaction_id`, different payload · **400** body isn't a JSON object |
+| `POST` | `/api/transactions/` | **201** new row (categorised or quarantined) · **200** identical replay · **409** same `transaction_id`, different payload · **400** body isn't a JSON object, or can't be stored faithfully (see below) |
 | `GET` | `/api/transactions/` | Your transactions, 20 per page, newest `timestamp` first. Default `status=categorised`; `?status=quarantined\|rejected\|all`, `?category=<one of 10>` |
 | `GET` | `/api/transactions/{id}/` | One transaction in any status, plus `raw_payload` (the request exactly as sent) |
 
@@ -98,6 +98,10 @@ assumption and leave the row categorised.
 |---|---|
 | Blocking | `missing_field`, `invalid_amount` (not finite, > 2 dp, ≥ 10¹²), `zero_amount`, `invalid_timestamp`, `future_timestamp` (> now + 5 min), `nonexistent_local_time` (DST gap), `invalid_transaction_type`, `sign_type_mismatch` (debit must be negative, credit positive), `invalid_currency`, `invalid_account_number`, `invalid_description`, `invalid_transaction_id`, `unsupported_character` (U+0000, which PostgreSQL can't store, replaced with U+FFFD) |
 | Warning | `ambiguous_local_time` (DST overlap, first occurrence assumed), `categorisation_fallback` (AI unavailable, rules used) |
+
+Two narrow exceptions are rejected with **400** instead, because quarantining means storing the
+body and these can't be stored faithfully: keys in one object that become identical once U+0000 is
+replaced, and JSON nested more than 32 levels deep. Neither occurs in real bank data.
 
 A field sent as the wrong JSON type (e.g. `"description": 123`) gets that field's `invalid_*` code;
 nothing is coerced. The database independently enforces that a categorised row has every field,

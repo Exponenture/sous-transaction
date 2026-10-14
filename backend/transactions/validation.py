@@ -42,6 +42,7 @@ CENT = Decimal("0.01")
 ACCOUNT_RE = re.compile(r"[A-Z]{2}[A-Z0-9]{8,32}")
 CURRENCY_RE = re.compile(r"[A-Z]{3}")
 NUL, REPLACEMENT = "\x00", "\ufffd"
+MAX_DEPTH = 32  # top-level object is level 1 (NOTES AM8)
 
 
 def issue(code, field, message, severity=BLOCKING):
@@ -63,6 +64,21 @@ class Parsed:
     issues: list = field(default_factory=list)
 
 
+class Unstorable(Exception):
+    """The body can't be stored faithfully, so it can't be quarantined either (NOTES AM8)."""
+
+
+def _check_depth(payload: dict) -> None:
+    """Iterative, so arbitrarily deep input can't exhaust the stack."""
+    stack = [(payload, 1)]
+    while stack:
+        value, depth = stack.pop()
+        if depth > MAX_DEPTH:
+            raise Unstorable(f"JSON nesting is deeper than {MAX_DEPTH} levels.")
+        children = value.values() if isinstance(value, dict) else value
+        stack.extend((child, depth + 1) for child in children if isinstance(child, (dict, list)))
+
+
 def _scrub(value):
     """Replace U+0000 at any depth (keys too). Returns (clean value, whether any was found)."""
     if isinstance(value, str):
@@ -74,18 +90,26 @@ def _scrub(value):
         clean, found = {}, False
         for key, item in value.items():
             (key, key_found), (item, item_found) = _scrub(key), _scrub(item)
-            clean[key] = item
+            _put(clean, key, item)
             found = found or key_found or item_found
         return clean, found
     return value, False
 
 
+def _put(target: dict, key: str, value) -> None:
+    if key in target:
+        raise Unstorable("Two keys in the same object are identical once U+0000 is replaced.")
+    target[key] = value
+
+
 def sanitise(payload: dict) -> tuple[dict, list]:
-    """PostgreSQL can't store U+0000; replace it and flag each affected top-level key (AM6)."""
+    """PostgreSQL can't store U+0000; replace it and flag each affected top-level key (AM6).
+    Raises Unstorable for bodies that can't be stored faithfully (AM8)."""
+    _check_depth(payload)
     clean, issues = {}, []
     for key, value in payload.items():
         (key, key_found), (value, value_found) = _scrub(key), _scrub(value)
-        clean[key] = value
+        _put(clean, key, value)
         if key_found or value_found:
             issues.append(
                 issue("unsupported_character", key, "Contained U+0000; replaced with U+FFFD.")
