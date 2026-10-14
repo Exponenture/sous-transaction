@@ -25,6 +25,7 @@ What each piece is and why it's here. Versions are pinned in `backend/requiremen
 | psycopg | The Postgres driver Django talks through |
 | sentry-sdk | Sends errors and alerts to Sentry (only when `SENTRY_DSN` is set) |
 | gunicorn | Production WSGI server that runs Django inside the container |
+| anthropic | Official Claude SDK: categorises transactions (`transactions/categorisation.py`); optional at runtime, rules fallback without a key |
 
 ## Backend dev tools
 | Package | What it does |

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "core",
+    "transactions",
 ]
 
 MIDDLEWARE = [
@@ -57,7 +58,7 @@ TEMPLATES = [
     }
 ]
 
-DATABASES = {"default": env.db("DATABASE_URL", default="postgres://sous:sous@localhost:5432/sous")}
+DATABASES = {"default": env.db("DATABASE_URL", default="postgres://sous:sous@localhost:5433/sous")}
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -114,6 +115,9 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+# AI categorisation; empty = keyword rules only (NOTES AM1).
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
 SENTRY_DSN = env("SENTRY_DSN", default="")
 if SENTRY_DSN:

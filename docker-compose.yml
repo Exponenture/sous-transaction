@@ -6,7 +6,8 @@ services:
       POSTGRES_USER: sous
       POSTGRES_PASSWORD: sous
     ports:
-      - "5432:5432"
+      # Host port 5433 so a local Postgres on 5432 doesn't clash; override with DB_PORT.
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
