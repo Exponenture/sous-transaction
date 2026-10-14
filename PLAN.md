@@ -2,8 +2,13 @@
 
 Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs: [#1](https://github.com/Exponenture/sous-transaction/pull/1) (merged), [#2](https://github.com/Exponenture/sous-transaction/pull/2)
 
-**Status 2026-10-14:** PR #1 (slices 1–4) squash-merged to `main`. Review round 1 fixes are in PR #2
-(`fix/review-round-1`); next is a fresh-thread Codex re-review of PR #2 (step 9) before it merges. See *Open questions for Lead* below.
+**Status 2026-10-14:** PR #1 (slices 1–4) squash-merged to `main`. PR #2 (`fix/review-round-1`) carries
+review rounds 1–2 fixes, AM8, exported prompts and README updates; CI green. Lead to decide on a final
+re-review, then merge (step 10). See *Open questions for Lead* below.
+
+> Commit SHAs below refer to the branch they were made on. Squash merges collapse them on `main`
+> (PR #1 = `1000ff1`), so keep `feat/transactions` and `fix/review-round-1` on origin for traceability.
+
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -14,12 +19,13 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 | Builder | Claude Code (own thread) | Plan + implementation; never writes tests |
 | Tester | Codex (own thread) | All tests, black-box from `NOTES.md` |
 | Reviewer | Codex (fresh thread) | Adversarial review via `docs/prompts/adversarial-review.md` |
-| Gate | GitHub Actions | lint, types, tests, migrations check |
+| Gate | GitHub Actions | lint, tests, migrations check, Docker Compose smoke (no type checker configured) |
 
 ## Steps
 - [ ] 1. Spec written in `NOTES.md` (problem, assumptions, model, endpoints, edge cases, cut line) — **Lead**
 - [ ] 2. Spec gap review; gaps resolved or labelled assumptions — Tester → **Lead**
 - [ ] 3. Contract tests written; suite is red for the right reason — Tester
+  - Suites committed `59863b6`, `9bc7cbe` (feat), `52538b1`, `adcd2e3` (PR #2), each red for the right reason when landed. Tester to tick.
 - [ ] 4. Tests reviewed (do they pin the spec, not guesses?) — **Lead**
 - [ ] 5. Build plan approved (files, models, order of slices) — Builder → **Lead**
 - [ ] 6. Slice 1: model + migration + validation/quarantine service + 3 endpoints, rules categoriser only — green, diff read by Lead — Builder / **Lead**
@@ -30,24 +36,28 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   - Tests landed in `9bc7cbe` (they discover action names and the issue filter from the admin UI).
     Built `4d84b93`; `make test lint` green (all suites). Awaiting Lead diff read.
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
-  - Written `640710d`. Awaiting Lead read (personal reasoning for the stack choice is the Lead's to add).
-- [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
-  - PR opened (#1); `make test lint` green locally. Tick when CI is green.
+  - Written `640710d`; Lead's stack reasoning and exported prompts (`docs/prompts/`) added on PR #2. Awaiting Lead read.
+- [x] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate — `373b376`
+  - PR #1: template, Backend check green at merge. PR #2: template; Backend, Docker Compose smoke and
+    CodeRabbit green at `373b376` (258 tests).
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
-  - Round 1 (2026-10-14) triaged by Lead, below. It ran in the Tester's thread on a stale checkout,
-    so it does not satisfy this step: re-run in a fresh thread on `origin/feat/transactions` after fixes.
+  - Round 1 ran in the Tester's thread on a stale checkout (R1–R2 invalid), so it didn't count as
+    independent. Round 2 ran in a fresh thread on PR #2 at `d0c5c46` (one attempt reviewed the wrong
+    repo and was discarded); its two findings R10–R11 are fixed. All findings triaged, below. Lead to
+    decide whether a round 3 is needed on PR #2's final commit before ticking.
+  - SHAs: round-1 fixes were made on `feat/transactions` (shown) and replayed onto PR #2 (in brackets).
 
   | # | Finding | Triage | Note |
   |---|---|---|---|
   | R1 | Admin registration absent (BLOCKER) | invalid (stale) | Built in `4d84b93`; 13/13 admin tests pass at HEAD |
   | R2 | README still scaffold | invalid (stale) | Written in `640710d` |
-  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fixed** `b6426b0` | AM7(c); reproduced |
-  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fixed** `b6426b0` | AM6 policy; reproduced (unknown key and description) |
-  | R5 | Rules put salary/transfer/refund under spending categories | **fixed** `b6426b0` | AM7(a); reproduced |
-  | R6 | Anthropic constructor outside try → no fallback | **fixed** `b6426b0` | AM7(b); reproduced |
+  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fixed** `b6426b0` (`5d897d5`) | AM7(c); reproduced |
+  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fixed** `b6426b0` (`5d897d5`) | AM6 policy; reproduced (unknown key and description) |
+  | R5 | Rules put salary/transfer/refund under spending categories | **fixed** `b6426b0` (`5d897d5`) | AM7(a); reproduced |
+  | R6 | Anthropic constructor outside try → no fallback | **fixed** `b6426b0` (`5d897d5`) | AM7(b); reproduced |
   | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
   | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
-  | R9 | No endpoint-level explicit `permission_classes` | **fixed** | `7ed791d`; no behaviour change, covered by existing auth tests |
+  | R9 | No endpoint-level explicit `permission_classes` | **fixed** `7ed791d` (`c59dc95`) | No behaviour change, covered by existing auth tests |
   | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `74e442e` | AM8(a): 400, nothing stored; reproduced |
   | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `74e442e` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
   | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `ecb5038` | api healthcheck; verified CI-style locally |
@@ -92,49 +102,48 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   `"timestamp": 1700000000`, `"amount": true`, `"transaction_type": ["debit"]`) gets that field's
   existing `invalid_*` code and quarantines the row. No new `invalid_type` code, no coercion
   (flag, don't fix). Only exception stays as specified: `transaction_id` may be string or integer.
-  Already implemented in `8c1f8a8`; Tester to add coverage.
+  Already implemented in `8c1f8a8`; covered since `52538b1` (`test_wrong_json_types_are_flagged_without_coercion`).
 - 2026-10-14 Tester: added lightweight admin review HTTP contracts in
   `backend/tests/test_transaction_admin.py`; lint passes, tests are red because
-  transaction admin URLs are not registered. No Lead steps ticked.
-
+  transaction admin URLs are not registered. No Lead steps ticked. (Resolved: admin built `4d84b93`, 13/13 pass.)
 - 2026-10-14 Builder (slice 3): admin cannot add or delete transactions (rows arrive via API;
   reject keeps the audit trail). Only quarantined rows are editable in the admin form. Approve
   re-runs the API validation on the stored fields, so a row also needs a `transaction_id`,
-  `currency` and `category` before it can be approved; existing warnings are kept. Flag for Lead.
-
+  `currency` and `category` before it can be approved; existing warnings are kept. Not yet confirmed
+  by Lead (see open questions).
 - 2026-10-14 Lead: commit `files/transaction_history.csv` as reference data (not imported by the app).
-
 - 2026-10-14 Lead: review round 1 triage as in step 9; NUL policy = replace U+0000 with U+FFFD on
   receipt + blocking `unsupported_character` (NOTES AM6); review fixes pinned as NOTES AM7, which
   also carries the wrong-JSON-type decision so the Tester sees it in the spec.
-
 - 2026-10-14 Tester: added AM6/AM7 adversarial-review regressions, expired JWT,
   creation-order and OpenAPI contracts; Docker smoke jobs use two synthetic rows.
   Twelve regression cases currently fail for the reproduced bugs; twelve pass.
-  Concurrent AI-call and admin ownership policies remain unpinned.
-
+  Concurrent AI-call and admin ownership policies remain unpinned. (Resolved in triage: R7 accepted,
+  R8 deferred; neither needs a test.)
 - 2026-10-14 Lead: PR #1 squash-merged at `2d0bb01` (main `1000ff1`), before step 9 and before the
   round-1 fixes. The 7 later commits were replayed unchanged onto `fix/review-round-1` → PR #2.
   SHAs in the step 9 table refer to `feat/transactions`; on PR #2 they are R3–R6 `5d897d5`,
   R9 `c59dc95`, tests `52538b1`.
-
 - 2026-10-14 Lead: review round 2 (fresh thread, correct repo) found R10–R11; policy = NOTES AM8
   (reject with 400 what can't be stored faithfully: key collisions after NUL replacement, nesting
   > 32 levels). Lossless alternative (extra raw-text column) rejected: migration + breaks AM6
   replay rule for an attacker-only case.
-
 - 2026-10-14 Builder: AM8 implemented. Tester to add one case: a body nested ~2000+ levels (fails in
   the JSON parser, not our check) also returns 400 `validation_error`; verified manually only.
-
-## Open questions for Lead
-- README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
-  the README currently gives a neutral technical rationale.
-- Brief asks for the AI-coding prompts used: export the Claude Code / Codex session prompts into
-  `docs/prompts/` (agents can't reconstruct them faithfully).
-
 - 2026-10-14 Tester: added 15 AM8 contracts in `test_transaction_unstorable_bodies.py`;
   4 pass and 11 fail for the pending collision/depth fixes. Small synthetic
-  fixtures only; no application code or Lead checklist steps changed.
+  fixtures only; no application code or Lead checklist steps changed. (Resolved: all pass after `74e442e`.)
+- 2026-10-14 Lead: README stack reasoning = chosen to match SOUS's stack (OfferZen profile), not the
+  Lead's native stack, so some latitude asked for in a code walk-through. Builder exported all
+  prompts to `docs/prompts/` (Builder-session prompts verbatim from the session export).
+
+## Open questions for Lead
+- Confirm slice 3 admin choices: no add/delete in admin; only quarantined rows editable; approve
+  needs `transaction_id`, `currency` and `category`.
+- Export your prompts from the Codex Tester/Reviewer threads into `docs/prompts/codex-sessions/`
+  (the Builder can't see them).
+- Round 3 review on PR #2's final commit, or accept round 2 as closing step 9?
+- Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b once satisfied; Tester to tick 3.
 
 ## Deferred (next PRs)
 - Per-owner scoping in the admin (review R8).
@@ -142,6 +151,6 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - Labelled accuracy eval for the LLM categoriser (run in CI on prompt changes); few-shot examples
   if accuracy slips on real merchant text.
 - Model-reported uncertainty (e.g. `uncertain` flag ⇒ review label) — needs a spec change.
-- Tests the Tester listed as outstanding: expired JWT, OpenAPI contract, equal-timestamp ordering
-  by creation time, Docker Compose smoke check.
-- Local dev DB contains a `smoke` user created for the compose smoke test; remove when convenient.
+- Tester: one case for a body nested ~2000+ levels (JSON-parser path of AM8b) returning 400.
+- Local Docker dev DB has `smoke` and `smoke2` users (random, unsaved passwords) from manual
+  end-to-end checks; remove when convenient.
