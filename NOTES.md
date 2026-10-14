@@ -183,6 +183,15 @@ the `anthropic.Anthropic(...)` constructor raising: fall back to rules with
 `"timestamp": 1700000000`, `"amount": true`) gets that field's `invalid_*` code; nothing is coerced
 (`transaction_id` may still be a string or integer).
 
+**AM8. Bodies that cannot be stored faithfully (Lead-approved 2026-10-14, review round 2).**
+Quarantine means storing the input, so input that can't be stored faithfully is rejected instead:
+**400 `validation_error`, nothing stored, no AI call**, checked before validation and replay
+matching. (a) Two keys in the same object (at any depth) that become identical after AM6's
+U+0000 → U+FFFD replacement, e.g. `{"extra\u0000": 1, "extra\ufffd": 2}`. (b) JSON nesting deeper
+than 32 levels (the top-level object is level 1; each nested object or array adds one), checked
+without recursion. Neither occurs in real bank transactions; both are narrow, documented
+exceptions to "quarantine, never reject", alongside "body isn't a JSON object" (AM5).
+
 ## Cut line
 Must: model + validation/quarantine + 3 endpoints + rules categoriser + LLM categoriser + docs.
 Should: admin approve/reject actions. Deferred: review API, description-level category cache,
