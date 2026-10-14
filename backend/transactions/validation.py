@@ -19,6 +19,22 @@ REQUIRED = (
     "transaction_type",
     "account_number",
 )
+ISSUE_CODES = (
+    "missing_field",
+    "invalid_amount",
+    "zero_amount",
+    "invalid_timestamp",
+    "future_timestamp",
+    "nonexistent_local_time",
+    "invalid_transaction_type",
+    "sign_type_mismatch",
+    "invalid_currency",
+    "invalid_account_number",
+    "invalid_description",
+    "invalid_transaction_id",
+    "ambiguous_local_time",
+    "categorisation_fallback",
+)
 FUTURE_TOLERANCE = timedelta(minutes=5)
 MAX_AMOUNT = Decimal(10) ** 12
 CENT = Decimal("0.01")

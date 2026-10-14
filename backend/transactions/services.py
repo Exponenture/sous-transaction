@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime
+from decimal import Decimal
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -8,6 +10,17 @@ from transactions import categorisation, validation
 from transactions.models import Transaction
 
 logger = logging.getLogger(__name__)
+
+
+REVIEWED_FIELDS = (
+    "transaction_id",
+    "amount",
+    "currency",
+    "timestamp",
+    "description",
+    "transaction_type",
+    "account_number",
+)
 
 
 class TransactionConflict(exceptions.APIException):
@@ -85,4 +98,56 @@ def submit_transaction(*, owner, payload: dict) -> tuple[Transaction, bool]:
         row.status,
         ",".join(i["code"] for i in issues) or "-",
     )
+    return row, True
+
+
+def _as_json(value):
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return value
+
+
+def _revalidate(row: Transaction) -> list:
+    """Blocking issues recomputed from the stored (reviewer-edited) fields; warnings kept (AM4)."""
+    payload = {name: _as_json(getattr(row, name)) for name in REVIEWED_FIELDS}
+    issues = [
+        i
+        for i in validation.validate(payload, now=timezone.now()).issues
+        if i["severity"] == validation.BLOCKING
+    ]
+    for name in ("currency", "category"):
+        if getattr(row, name) is None:
+            issues.append(validation.issue("missing_field", name, f"'{name}' is required."))
+    return issues + [i for i in row.issues if i["severity"] == validation.WARNING]
+
+
+def approve_transaction(*, pk, reviewer) -> tuple[Transaction, bool]:
+    """Quarantined rows only. Returns (row, approved); never calls the LLM."""
+    with transaction.atomic():
+        row = Transaction.objects.select_for_update().get(pk=pk)
+        if row.status != Transaction.Status.QUARANTINED:
+            return row, False
+        row.issues = _revalidate(row)
+        if validation.has_blocking(row.issues):
+            row.save(update_fields=["issues", "updated_at"])
+            return row, False
+        row.status = Transaction.Status.CATEGORISED
+        row.reviewed_by, row.reviewed_at = reviewer, timezone.now()
+        row.save(update_fields=["issues", "status", "reviewed_by", "reviewed_at", "updated_at"])
+    logger.info("transaction_approved id=%s", row.pk)
+    return row, True
+
+
+def reject_transaction(*, pk, reviewer) -> tuple[Transaction, bool]:
+    """Quarantined rows only. Returns (row, rejected)."""
+    with transaction.atomic():
+        row = Transaction.objects.select_for_update().get(pk=pk)
+        if row.status != Transaction.Status.QUARANTINED:
+            return row, False
+        row.status = Transaction.Status.REJECTED
+        row.reviewed_by, row.reviewed_at = reviewer, timezone.now()
+        row.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
+    logger.info("transaction_rejected id=%s", row.pk)
     return row, True
