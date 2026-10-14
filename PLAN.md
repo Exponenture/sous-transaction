@@ -1,10 +1,10 @@
 # Plan: Transaction categorisation API
 
-Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs: [#1](https://github.com/Exponenture/sous-transaction/pull/1) (merged), [#2](https://github.com/Exponenture/sous-transaction/pull/2)
+Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs: [#1](https://github.com/Exponenture/sous-transaction/pull/1), [#2](https://github.com/Exponenture/sous-transaction/pull/2), [#3](https://github.com/Exponenture/sous-transaction/pull/3) (all merged)
 
-**Status 2026-10-14:** PR #1 (slices 1–4) squash-merged to `main`. PR #2 (`fix/review-round-1`) carries
-review rounds 1–2 fixes, AM8, exported prompts and README updates; CI green. Round 2 accepted as the
-final review; PR #2 ready for the Lead to merge (step 10). See *Open questions for Lead* below.
+**Status 2026-10-14:** build complete. PRs #1–#3 merged; `main` has the step-by-step history
+(restored at `4cb5669`) plus the unit-suite PR (`2c583ee`). 289 tests, 97.05% coverage, CI green.
+Remaining before submission: Lead ticks, repo public. See *Open questions for Lead*.
 
 > History restored 2026-10-14: `main` was rebuilt from the branch commits (PR #1 and #2 had been
 > squash-merged), so every SHA below is on `main`. Round-1 fixes first made on `feat/transactions`
@@ -20,13 +20,14 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 | Builder | Claude Code (own thread) | Plan + implementation; never writes tests |
 | Tester | Codex (own thread) | All tests, black-box from `NOTES.md` |
 | Reviewer | Codex (fresh thread) | Adversarial review via `docs/prompts/adversarial-review.md` |
-| Gate | GitHub Actions | lint, tests, migrations check, Docker Compose smoke (no type checker configured) |
+| Gate | GitHub Actions | lint, tests + coverage report, migrations check, Docker Compose smoke (no type checker configured) |
 
 ## Steps
 - [ ] 1. Spec written in `NOTES.md` (problem, assumptions, model, endpoints, edge cases, cut line) — **Lead**
 - [ ] 2. Spec gap review; gaps resolved or labelled assumptions — Tester → **Lead**
 - [ ] 3. Contract tests written; suite is red for the right reason — Tester
-  - Suites committed `59863b6`, `9bc7cbe`, `5733146`, `74fdcc8`, each red for the right reason when landed. Tester to tick.
+  - Suites committed `59863b6`, `9bc7cbe`, `5733146`, `74fdcc8`, each red for the right reason when landed;
+    unit suite + coverage `2c583ee` (PR #3). Tester to tick.
 - [ ] 4. Tests reviewed (do they pin the spec, not guesses?) — **Lead**
 - [ ] 5. Build plan approved (files, models, order of slices) — Builder → **Lead**
 - [ ] 6. Slice 1: model + migration + validation/quarantine service + 3 endpoints, rules categoriser only — green, diff read by Lead — Builder / **Lead**
@@ -62,6 +63,8 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `9c57451` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
   | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `bdecc3d` | api healthcheck; verified CI-style locally |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
+  - PRs #1–#3 merged. For this task `main` keeps per-step commits instead of squashes (the brief scores
+    commit history); see the history-restore decision.
 
 ## Decisions (append as you go)
 - 2026-10-14 Scope: single-transaction API only; no CSV import, no batching (Lead). CSV import was
@@ -146,22 +149,31 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   commits"). Builder rebuilt it on `history/main` (scaffold → slice commits → PR #2 commits → CSV
   note), tree verified identical to `main` + the CSV note; the Lead force-pushes it to `main`.
 
-## Open questions for Lead
-- Export your prompts from the Codex Tester/Reviewer threads into `docs/prompts/codex-sessions/`
-  (the Builder can't see them).
-- Merge PR #2 (agents never merge).
-- Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b once satisfied; Tester to tick 3.
-
 - 2026-10-14 Tester: added 31 pure-function unit cases without HTTP/database access;
   pytest-cov measures statement and branch coverage for core/transactions, with
   reports retained by CI and scoped measured figures documented in README.
+- 2026-10-14 Lead: `main` force-pushed to the restored history (`4cb5669`); PR #3 (unit suite +
+  coverage) merged as `2c583ee`. Builder re-measured: 289 tests pass, coverage 97.05% combined
+  (97.38% statements, 95.71% branches) across `core` and `transactions`.
+
+- 2026-10-14 Lead: Codex-side prompts will not be exported; `docs/prompts/` notes this. The
+  Builder-drafted handoffs, spec and standing files are the substantive Codex instructions.
+
+## Open questions for Lead
+- Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b, 9, 10 once satisfied; Tester to tick 3.
+- Make the repo public (history and published files scanned: no secrets, no tracked `.env`).
 
 ## Deferred (next PRs)
 - Per-owner scoping in the admin (review R8).
-- Review API; description-level category cache; async categorisation; CSV import.
+- Review API; description-level category cache; async categorisation; CSV import (skipped at the
+  SOUS reviewer's request).
+- 404 responses use error code `"error"` (and an empty message for a malformed id) instead of
+  `"not_found"`; comes from `core/exceptions.py` in the scaffold. Small fix + Tester case.
 - Labelled accuracy eval for the LLM categoriser (run in CI on prompt changes); few-shot examples
   if accuracy slips on real merchant text.
 - Model-reported uncertainty (e.g. `uncertain` flag ⇒ review label) — needs a spec change.
 - Tester: one case for a body nested ~2000+ levels (JSON-parser path of AM8b) returning 400.
 - Local Docker dev DB has `smoke` and `smoke2` users (random, unsaved passwords) from manual
-  end-to-end checks; remove when convenient.
+  end-to-end checks, and a local `admin` superuser whose login is only in the gitignored `.env`.
+- Remote branch `docs/csv-scope` is redundant (its commit is on `main`); safe to delete. Keep
+  `feat/transactions` and `fix/review-round-1`: their SHAs are cited above.

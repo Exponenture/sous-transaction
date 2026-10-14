@@ -10,7 +10,9 @@ the root README ("How AI tools were used") and [`AGENTS.md`](../../AGENTS.md).
 | [`adversarial-review.md`](adversarial-review.md) | The Reviewer's standing prompt |
 | [`codex-test-plan.md`](codex-test-plan.md) | The Tester's proposed test plan, reviewed before any tests were written |
 | [`reviews/`](reviews/) | Codex adversarial review output, rounds 1 and 2 (triage in `PLAN.md` step 9) |
-| [`codex-sessions/`](codex-sessions/) | The Lead's prompts in the Codex Tester/Reviewer threads (exported from Codex) |
+
+The Lead's own messages inside the Codex threads were not exported; the substantive instructions
+Codex received are the handoffs above plus the spec and standing files below.
 
 Standing instructions every agent read: [`AGENTS.md`](../../AGENTS.md) (engineering rules and roles),
 [`CLAUDE.md`](../../CLAUDE.md) (Builder role), and the spec [`NOTES.md`](../../NOTES.md).
