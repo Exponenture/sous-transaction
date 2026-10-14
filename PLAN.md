@@ -2,8 +2,8 @@
 
 Spec: `NOTES.md` · Branch: `feat/transactions` · PR: [#1](https://github.com/Exponenture/sous-transaction/pull/1)
 
-**Status 2026-10-14:** slices 1–4 done, PR #1 open. First review (Codex) triaged; 4 fixes waiting on
-Tester tests for AM6/AM7, then a fresh-thread re-review. See *Open questions for Lead* below.
+**Status 2026-10-14:** slices 1–4 done, PR #1 open. Review round 1 fixes R3–R6, R9 done; next is a
+fresh-thread Codex re-review on `origin/feat/transactions` (step 9). See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -41,13 +41,13 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   |---|---|---|---|
   | R1 | Admin registration absent (BLOCKER) | invalid (stale) | Built in `4d84b93`; 13/13 admin tests pass at HEAD |
   | R2 | README still scaffold | invalid (stale) | Written in `640710d` |
-  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fix** | AM7(c); reproduced |
-  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fix** | AM6 policy; reproduced (unknown key and description) |
-  | R5 | Rules put salary/transfer/refund under spending categories | **fix** | AM7(a); reproduced |
-  | R6 | Anthropic constructor outside try → no fallback | **fix** | AM7(b); reproduced |
+  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fixed** `b6426b0` | AM7(c); reproduced |
+  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fixed** `b6426b0` | AM6 policy; reproduced (unknown key and description) |
+  | R5 | Rules put salary/transfer/refund under spending categories | **fixed** `b6426b0` | AM7(a); reproduced |
+  | R6 | Anthropic constructor outside try → no fallback | **fixed** `b6426b0` | AM7(b); reproduced |
   | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
   | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
-  | R9 | No endpoint-level explicit `permission_classes` | **fix** | Done `7ed791d`; no behaviour change, covered by existing auth tests |
+  | R9 | No endpoint-level explicit `permission_classes` | **fixed** | `7ed791d`; no behaviour change, covered by existing auth tests |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
 ## Decisions (append as you go)
