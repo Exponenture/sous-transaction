@@ -48,6 +48,9 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
   | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
   | R9 | No endpoint-level explicit `permission_classes` | **fixed** | `7ed791d`; no behaviour change, covered by existing auth tests |
+  | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fix** | AM8(a): 400, nothing stored; reproduced |
+  | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fix** | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP |
+  | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `ecb5038` | api healthcheck; verified CI-style locally |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
 ## Decisions (append as you go)
@@ -114,6 +117,11 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   round-1 fixes. The 7 later commits were replayed unchanged onto `fix/review-round-1` → PR #2.
   SHAs in the step 9 table refer to `feat/transactions`; on PR #2 they are R3–R6 `5d897d5`,
   R9 `c59dc95`, tests `52538b1`.
+
+- 2026-10-14 Lead: review round 2 (fresh thread, correct repo) found R10–R11; policy = NOTES AM8
+  (reject with 400 what can't be stored faithfully: key collisions after NUL replacement, nesting
+  > 32 levels). Lossless alternative (extra raw-text column) rejected: migration + breaks AM6
+  replay rule for an attacker-only case.
 
 ## Open questions for Lead
 - README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
