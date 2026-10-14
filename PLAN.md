@@ -4,7 +4,7 @@ Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs:
 
 **Status 2026-10-14:** build complete. PRs #1–#3 merged; `main` has the step-by-step history
 (restored at `4cb5669`) plus the unit-suite PR (`2c583ee`). 289 tests, 97.05% coverage, CI green.
-Remaining before submission: Lead ticks, Codex prompt export, repo public. See *Open questions for Lead*.
+Remaining before submission: Lead ticks, repo public. See *Open questions for Lead*.
 
 > History restored 2026-10-14: `main` was rebuilt from the branch commits (PR #1 and #2 had been
 > squash-merged), so every SHA below is on `main`. Round-1 fixes first made on `feat/transactions`
@@ -156,9 +156,10 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   coverage) merged as `2c583ee`. Builder re-measured: 289 tests pass, coverage 97.05% combined
   (97.38% statements, 95.71% branches) across `core` and `transactions`.
 
+- 2026-10-14 Lead: Codex-side prompts will not be exported; `docs/prompts/` notes this. The
+  Builder-drafted handoffs, spec and standing files are the substantive Codex instructions.
+
 ## Open questions for Lead
-- Export your prompts from the Codex Tester/Reviewer threads into `docs/prompts/codex-sessions/`
-  (the Builder can't see them).
 - Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b, 9, 10 once satisfied; Tester to tick 3.
 - Make the repo public (history and published files scanned: no secrets, no tracked `.env`).
 

@@ -3,8 +3,8 @@
 The Builder (Claude Code) never writes tests or reviews its own work. When a step needed the Tester
 or Reviewer (Codex, separate threads), the Builder drafted the prompt below and the Lead passed it
 on. Verbatim from the Builder session (times UTC, 2026-10-14). Commit IDs inside the prompts are as they were at the
-time; after the history restore on `main`, `d0c5c46` is `54f1976` and `826b203` is `4997d6f`. The Lead's own Codex sessions may
-have added context; those prompts are in [`codex-sessions/`](codex-sessions/) when exported.
+time; after the history restore on `main`, `d0c5c46` is `54f1976` and `826b203` is `4997d6f`. The Lead's own messages in the Codex
+threads may have added context; they were not exported.
 
 ## 15:27 — Tester: regressions for review round 1 (NOTES AM6/AM7)
 
