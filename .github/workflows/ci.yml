@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (ruff, pytest, migrations)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sous
+          POSTGRES_USER: sous
+          POSTGRES_PASSWORD: sous
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sous" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      DEBUG: "true"
+      SECRET_KEY: ci-only-insecure-key-at-least-32-bytes
+      DATABASE_URL: postgres://sous:sous@localhost:5432/sous
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check . && ruff format --check .
+      - name: Missing migrations
+        run: python manage.py makemigrations --check --dry-run
+      - name: Tests
+        run: pytest
+

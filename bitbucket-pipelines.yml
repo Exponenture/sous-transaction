@@ -1,0 +1,28 @@
+# Bitbucket Pipelines: backend (ruff + pytest against Postgres 16) on every push.
+image: python:3.12
+
+definitions:
+  services:
+    postgres:
+      image: postgres:16
+      variables:
+        POSTGRES_DB: sous
+        POSTGRES_USER: sous
+        POSTGRES_PASSWORD: sous
+
+  steps:
+    - step: &backend
+        name: Backend lint + test
+        caches: [pip]
+        services: [postgres] # reachable on localhost:5432
+        script:
+          - export DEBUG=true SECRET_KEY=ci-only-insecure-key-at-least-32-bytes
+          - export DATABASE_URL=postgres://sous:sous@localhost:5432/sous
+          - cd backend
+          - pip install -r requirements-dev.txt
+          - ruff check . && ruff format --check .
+          - pytest
+          - python manage.py makemigrations --check --dry-run
+pipelines:
+  default:
+    - step: *backend

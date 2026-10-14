@@ -1,0 +1,7 @@
+#!/bin/sh
+# Fast local gate on staged files. Full gate is CI; run `make test lint` before pushing.
+set -e
+PY=$(git diff --cached --name-only --diff-filter=ACM -- 'backend/*.py' | sed 's|^backend/||')
+if [ -n "$PY" ]; then
+  (cd backend && .venv/bin/ruff check --force-exclude $PY && .venv/bin/ruff format --check --force-exclude $PY)
+fi
