@@ -42,6 +42,14 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Tester: checked NOTES.md amendments AM1–AM5 and added AI, rules,
   replay-equality and HTTP/logging edge tests; replaced fixed-clock future tests
   with relative-time tests. Admin review coverage remains outstanding.
+- 2026-10-14 Builder: runtime prompt lives at `backend/transactions/prompts/categorise.md`, not
+  `docs/prompts/` as NOTES says — the Docker build context is `backend/`, so docs/ is not in the image.
+  `docs/prompts/` keeps the AI-coding-tool prompts; README will link both. Needs Lead OK.
+- 2026-10-14 Builder: LLM call uses `claude-haiku-5-5` with thinking disabled and a JSON-schema
+  enum of the 10 categories (`output_config.format`). Live smoke test on the 20 sample
+  descriptions + 2 extras + 1 prompt-injection string: 23/23 matched the rules table, 1.1–2.8 s each.
+- 2026-10-14 Builder: wrong JSON types (e.g. numeric description) map to that field's `invalid_*`
+  code; `transaction_type` widened to 16 chars so the CHECK constraint (not varchar length) rejects bad values.
 
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.

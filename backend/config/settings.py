@@ -116,6 +116,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+# AI categorisation; empty = keyword rules only (NOTES AM1).
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
 SENTRY_DSN = env("SENTRY_DSN", default="")
 if SENTRY_DSN:
     sentry_sdk.init(
