@@ -109,8 +109,8 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Builder (slice 3): admin cannot add or delete transactions (rows arrive via API;
   reject keeps the audit trail). Only quarantined rows are editable in the admin form. Approve
   re-runs the API validation on the stored fields, so a row also needs a `transaction_id`,
-  `currency` and `category` before it can be approved; existing warnings are kept. Not yet confirmed
-  by Lead (see open questions).
+  `currency` and `category` before it can be approved; existing warnings are kept. **Confirmed by
+  Lead 2026-10-14.**
 - 2026-10-14 Lead: commit `files/transaction_history.csv` as reference data (not imported by the app).
 - 2026-10-14 Lead: review round 1 triage as in step 9; NUL policy = replace U+0000 with U+FFFD on
   receipt + blocking `unsupported_character` (NOTES AM6); review fixes pinned as NOTES AM7, which
@@ -136,10 +136,12 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Lead: README stack reasoning = chosen to match SOUS's stack (OfferZen profile), not the
   Lead's native stack, so some latitude asked for in a code walk-through. Builder exported all
   prompts to `docs/prompts/` (Builder-session prompts verbatim from the session export).
+- 2026-10-14 Lead: confirmed the slice 3 admin choices: (1) no add or delete in the admin (rows
+  arrive via the API; reject keeps the audit trail); (2) only quarantined rows are editable;
+  (3) approve re-runs API validation, so `transaction_id`, `currency` and `category` are required.
+  Superuser delete and audited edits of categorised rows stay possible later as deliberate features.
 
 ## Open questions for Lead
-- Confirm slice 3 admin choices: no add/delete in admin; only quarantined rows editable; approve
-  needs `transaction_id`, `currency` and `category`.
 - Export your prompts from the Codex Tester/Reviewer threads into `docs/prompts/codex-sessions/`
   (the Builder can't see them).
 - Round 3 review on PR #2's final commit, or accept round 2 as closing step 9?
