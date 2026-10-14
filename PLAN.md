@@ -3,8 +3,8 @@
 Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs: [#1](https://github.com/Exponenture/sous-transaction/pull/1) (merged), [#2](https://github.com/Exponenture/sous-transaction/pull/2)
 
 **Status 2026-10-14:** PR #1 (slices 1–4) squash-merged to `main`. PR #2 (`fix/review-round-1`) carries
-review rounds 1–2 fixes, AM8, exported prompts and README updates; CI green. Lead to decide on a final
-re-review, then merge (step 10). See *Open questions for Lead* below.
+review rounds 1–2 fixes, AM8, exported prompts and README updates; CI green. Round 2 accepted as the
+final review; PR #2 ready for the Lead to merge (step 10). See *Open questions for Lead* below.
 
 > Commit SHAs below refer to the branch they were made on. Squash merges collapse them on `main`
 > (PR #1 = `1000ff1`), so keep `feat/transactions` and `fix/review-round-1` on origin for traceability.
@@ -43,8 +43,8 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
   - Round 1 ran in the Tester's thread on a stale checkout (R1–R2 invalid), so it didn't count as
     independent. Round 2 ran in a fresh thread on PR #2 at `d0c5c46` (one attempt reviewed the wrong
-    repo and was discarded); its two findings R10–R11 are fixed. All findings triaged, below. Lead to
-    decide whether a round 3 is needed on PR #2's final commit before ticking.
+    repo and was discarded); its two findings R10–R11 are fixed. All findings triaged, below.
+    **Lead accepted round 2 as closing this step (2026-10-14); no round 3.**
   - SHAs: round-1 fixes were made on `feat/transactions` (shown) and replayed onto PR #2 (in brackets).
 
   | # | Finding | Triage | Note |
@@ -140,11 +140,12 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   arrive via the API; reject keeps the audit trail); (2) only quarantined rows are editable;
   (3) approve re-runs API validation, so `transaction_id`, `currency` and `category` are required.
   Superuser delete and audited edits of categorised rows stay possible later as deliberate features.
+- 2026-10-14 Lead: accepted review round 2 as closing step 9; no round 3. Merge of PR #2 is the Lead's.
 
 ## Open questions for Lead
 - Export your prompts from the Codex Tester/Reviewer threads into `docs/prompts/codex-sessions/`
   (the Builder can't see them).
-- Round 3 review on PR #2's final commit, or accept round 2 as closing step 9?
+- Merge PR #2 (agents never merge).
 - Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b once satisfied; Tester to tick 3.
 
 ## Deferred (next PRs)
