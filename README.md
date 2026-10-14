@@ -7,6 +7,10 @@ with machine-readable issues for a human to review.
 
 Django 5.2 + DRF + PostgreSQL 16, JWT auth, Docker Compose, pytest, GitHub Actions CI.
 
+**Scope note:** the brief mentions transaction history supplied as a CSV file. The SOUS reviewer asked
+for that to be skipped, so this is a single-transaction API with no CSV import or batching. The
+sample CSV (`files/transaction_history.csv`) was used to shape the dirty-data rules.
+
 - Spec: [`NOTES.md`](NOTES.md) · Task plan and decision log: [`PLAN.md`](PLAN.md)
 - Engineering rules: [`AGENTS.md`](AGENTS.md) · Dependencies explained: [`STACK.md`](STACK.md)
 
@@ -168,7 +172,7 @@ The original request (`raw_payload`) is read-only. The admin can't add or delete
   flagged rather than guessed: a skipped time is blocking, a repeated time is a warning.
 - **Admin as the review UI.** Zero front-end code and staff permissions for free; a review API is
   deferred.
-- **Not done (deferred):** CSV import and batch submission (out of scope by decision), caching
+- **Not done (deferred):** CSV import and batch submission (skipped at the SOUS reviewer's request), caching
   categories per description (the sample has only 20 distinct descriptions), a labelled accuracy
   eval for the prompt, model-reported uncertainty, a review API. See `PLAN.md`.
 

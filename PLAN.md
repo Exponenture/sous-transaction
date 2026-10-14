@@ -64,7 +64,8 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
 ## Decisions (append as you go)
-- 2026-10-14 Scope: single-transaction API only; no CSV import, no batching (Lead).
+- 2026-10-14 Scope: single-transaction API only; no CSV import, no batching (Lead). CSV import was
+  skipped on the SOUS reviewer's instruction, confirmed by the Lead 2026-10-14; README says so up front.
 - 2026-10-14 Dirty input is accepted and quarantined with labelled issues, not rejected with 400 (Lead).
 - 2026-10-14 Logically impossible rows (e.g. sign/type mismatch, ~49% of sample CSV) are blocking (Lead).
 - 2026-10-14 Naive timestamps = Europe/Amsterdam local time (Lead).
