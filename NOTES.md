@@ -165,6 +165,24 @@ never appears in log output (check with `caplog` on clean and dirty submissions)
 timestamp boundary is tested relative to now (now+4 min clean, now+6 min quarantined); no
 time-freezing dependency.
 
+**AM6. NUL characters (Lead-approved 2026-10-14, after adversarial review).** PostgreSQL cannot
+store U+0000 in text or JSONB. On receipt, before validation, replay matching or storage, every
+U+0000 in the body (object keys and string values, at any depth) is replaced with U+FFFD. The
+sanitised body is what `raw_payload` stores and what replay equality (AM3) compares, so resending
+the same NUL-containing payload is an identical replay (200). Each top-level key whose name or
+value (at any depth) contained U+0000 gets one blocking issue `unsupported_character`, with `field`
+= that key as sanitised. The row is quarantined; it is never a 500.
+
+**AM7. Review fixes (Lead-approved 2026-10-14).** (a) Rules precedence: money-movement keywords
+(salary, transfer, refund, ATM, withdrawal, credit card) are checked before spending keywords and
+map to `Miscellaneous`, e.g. "Salary from School Employer", "Transfer to Rent Account" and
+"Tax Refund Netflix" are all `Miscellaneous`. The AM2 table is unchanged. (b) AM1 failures include
+the `anthropic.Anthropic(...)` constructor raising: fall back to rules with
+`categorisation_fallback`. (c) Any amount whose decimal arithmetic fails (e.g. `"1e1000000"`) is
+`invalid_amount`, never a 500. (d) A field sent as the wrong JSON type (e.g. `"description": 123`,
+`"timestamp": 1700000000`, `"amount": true`) gets that field's `invalid_*` code; nothing is coerced
+(`transaction_id` may still be a string or integer).
+
 ## Cut line
 Must: model + validation/quarantine + 3 endpoints + rules categoriser + LLM categoriser + docs.
 Should: admin approve/reject actions. Deferred: review API, description-level category cache,
