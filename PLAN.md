@@ -1,9 +1,9 @@
 # Plan: Transaction categorisation API
 
-Spec: `NOTES.md` · Branch: `feat/transactions` · PR: [#1](https://github.com/Exponenture/sous-transaction/pull/1)
+Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs: [#1](https://github.com/Exponenture/sous-transaction/pull/1) (merged), [#2](https://github.com/Exponenture/sous-transaction/pull/2)
 
-**Status 2026-10-14:** slices 1–4 done, PR #1 open. Review round 1 fixes R3–R6, R9 done; next is a
-fresh-thread Codex re-review on `origin/feat/transactions` (step 9). See *Open questions for Lead* below.
+**Status 2026-10-14:** PR #1 (slices 1–4) squash-merged to `main`. Review round 1 fixes are in PR #2
+(`fix/review-round-1`); next is a fresh-thread Codex re-review of PR #2 (step 9) before it merges. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -109,6 +109,11 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   creation-order and OpenAPI contracts; Docker smoke jobs use two synthetic rows.
   Twelve regression cases currently fail for the reproduced bugs; twelve pass.
   Concurrent AI-call and admin ownership policies remain unpinned.
+
+- 2026-10-14 Lead: PR #1 squash-merged at `2d0bb01` (main `1000ff1`), before step 9 and before the
+  round-1 fixes. The 7 later commits were replayed unchanged onto `fix/review-round-1` → PR #2.
+  SHAs in the step 9 table refer to `feat/transactions`; on PR #2 they are R3–R6 `5d897d5`,
+  R9 `c59dc95`, tests `52538b1`.
 
 ## Open questions for Lead
 - README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
