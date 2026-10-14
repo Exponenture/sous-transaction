@@ -1,8 +1,8 @@
 # Plan: Transaction categorisation API
 
-Spec: `NOTES.md` · Branch: `feat/transactions` · PR: (not opened)
+Spec: `NOTES.md` · Branch: `feat/transactions` · PR: [#1](https://github.com/Exponenture/sous-transaction/pull/1)
 
-**Status 2026-10-14:** slices 1–4 done, awaiting Lead diff read. Next: step 8 (open the PR). Slice 4 (README) can start any time. See *Open questions for Lead* below.
+**Status 2026-10-14:** slices 1–4 done, awaiting Lead diff read. PR #1 open; awaiting CI, then step 9 adversarial review. Slice 4 (README) can start any time. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -31,6 +31,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
   - Written `640710d`. Awaiting Lead read (personal reasoning for the stack choice is the Lead's to add).
 - [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
+  - PR opened (#1); `make test lint` green locally. Tick when CI is green.
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
