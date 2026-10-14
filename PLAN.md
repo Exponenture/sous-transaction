@@ -47,7 +47,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   | R6 | Anthropic constructor outside try → no fallback | **fix** | AM7(b); reproduced |
   | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
   | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
-  | R9 | No endpoint-level explicit `permission_classes` | **fix** | Done `R9SHA`; no behaviour change, covered by existing auth tests |
+  | R9 | No endpoint-level explicit `permission_classes` | **fix** | Done `7ed791d`; no behaviour change, covered by existing auth tests |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
 ## Decisions (append as you go)
