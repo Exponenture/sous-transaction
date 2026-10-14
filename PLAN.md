@@ -2,7 +2,8 @@
 
 Spec: `NOTES.md` · Branch: `feat/transactions` · PR: [#1](https://github.com/Exponenture/sous-transaction/pull/1)
 
-**Status 2026-10-14:** slices 1–4 done, awaiting Lead diff read. PR #1 open; awaiting CI, then step 9 adversarial review. See *Open questions for Lead* below.
+**Status 2026-10-14:** slices 1–4 done, PR #1 open. First review (Codex) triaged; 4 fixes waiting on
+Tester tests for AM6/AM7, then a fresh-thread re-review. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -33,6 +34,20 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
   - PR opened (#1); `make test lint` green locally. Tick when CI is green.
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
+  - Round 1 (2026-10-14) triaged by Lead, below. It ran in the Tester's thread on a stale checkout,
+    so it does not satisfy this step: re-run in a fresh thread on `origin/feat/transactions` after fixes.
+
+  | # | Finding | Triage | Note |
+  |---|---|---|---|
+  | R1 | Admin registration absent (BLOCKER) | invalid (stale) | Built in `4d84b93`; 13/13 admin tests pass at HEAD |
+  | R2 | README still scaffold | invalid (stale) | Written in `640710d` |
+  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fix** | AM7(c); reproduced |
+  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fix** | AM6 policy; reproduced (unknown key and description) |
+  | R5 | Rules put salary/transfer/refund under spending categories | **fix** | AM7(a); reproduced |
+  | R6 | Anthropic constructor outside try → no fallback | **fix** | AM7(b); reproduced |
+  | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
+  | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
+  | R9 | No endpoint-level explicit `permission_classes` | **fix** | No behaviour change; matches AGENTS.md wording |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
 ## Decisions (append as you go)
@@ -86,6 +101,10 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 
 - 2026-10-14 Lead: commit `files/transaction_history.csv` as reference data (not imported by the app).
 
+- 2026-10-14 Lead: review round 1 triage as in step 9; NUL policy = replace U+0000 with U+FFFD on
+  receipt + blocking `unsupported_character` (NOTES AM6); review fixes pinned as NOTES AM7, which
+  also carries the wrong-JSON-type decision so the Tester sees it in the spec.
+
 ## Open questions for Lead
 - README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
   the README currently gives a neutral technical rationale.
@@ -93,6 +112,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   `docs/prompts/` (agents can't reconstruct them faithfully).
 
 ## Deferred (next PRs)
+- Per-owner scoping in the admin (review R8).
 - Review API; description-level category cache; async categorisation; CSV import.
 - Labelled accuracy eval for the LLM categoriser (run in CI on prompt changes); few-shot examples
   if accuracy slips on real merchant text.
