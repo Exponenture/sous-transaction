@@ -48,8 +48,8 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
   | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
   | R9 | No endpoint-level explicit `permission_classes` | **fixed** | `7ed791d`; no behaviour change, covered by existing auth tests |
-  | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `AM8SHA` | AM8(a): 400, nothing stored; reproduced |
-  | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `AM8SHA` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
+  | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `74e442e` | AM8(a): 400, nothing stored; reproduced |
+  | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `74e442e` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
   | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `ecb5038` | api healthcheck; verified CI-style locally |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
