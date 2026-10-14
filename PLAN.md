@@ -29,7 +29,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   - Tests landed in `9bc7cbe` (they discover action names and the issue filter from the admin UI).
     Built `4d84b93`; `make test lint` green (all suites). Awaiting Lead diff read.
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
-  - Written `SLICE4SHA`. Awaiting Lead read (personal reasoning for the stack choice is the Lead's to add).
+  - Written `640710d`. Awaiting Lead read (personal reasoning for the stack choice is the Lead's to add).
 - [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
