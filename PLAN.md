@@ -1,6 +1,9 @@
 # Plan: Transaction categorisation API
 
 Spec: `NOTES.md` · Branch: `feat/transactions` · PR: (not opened)
+
+**Status 2026-10-14:** slices 1–2 built and green, awaiting Lead diff read. Slice 3 blocked on admin
+tests. Slice 4 (README) can start any time. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -20,8 +23,12 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 4. Tests reviewed (do they pin the spec, not guesses?) — **Lead**
 - [ ] 5. Build plan approved (files, models, order of slices) — Builder → **Lead**
 - [ ] 6. Slice 1: model + migration + validation/quarantine service + 3 endpoints, rules categoriser only — green, diff read by Lead — Builder / **Lead**
-- [ ] 7. Slice 2: LLM categoriser (Anthropic SDK, `docs/prompts/categorise.md`, timeout, fallback) — green, diff read by Lead — Builder / **Lead**
+  - Built `8c1f8a8`; `make test lint` green. Awaiting Lead diff read.
+- [ ] 7. Slice 2: LLM categoriser (Anthropic SDK, `backend/transactions/prompts/categorise.md`, timeout, fallback) — green, diff read by Lead — Builder / **Lead**
+  - Built `59d4e2c`; full suite + live smoke test green. Awaiting Lead diff read.
 - [ ] 7a. Slice 3: admin review queue (filters, approve/reject actions) — green, diff read by Lead — Builder / **Lead**
+  - **Blocked:** no admin tests yet. Tester needs Lead to pin admin action identifiers and the
+    issue-code filter parameter first (`docs/testing/transactions.md`).
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
 - [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
@@ -33,7 +40,8 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Logically impossible rows (e.g. sign/type mismatch, ~49% of sample CSV) are blocking (Lead).
 - 2026-10-14 Naive timestamps = Europe/Amsterdam local time (Lead).
 - 2026-10-14 Spec amendments AM1–AM5 after test-plan review: LLM mock seam, rules mapping, replay equality, admin approve semantics, added cases (Lead).
-
+- 2026-10-14 Lead approved spec (`e6f5ee4`, amendments `bf023fc`) and the Tester's suite ("good to go")
+  in chat; boxes 1, 2, 4, 5 left for the Lead to tick.
 - 2026-10-14 Tester: added black-box submission/retrieval/integrity contract tests under
   `backend/tests/`; coverage, explicit assumptions and remaining slice tests are in
   `docs/testing/transactions.md`. No Lead steps ticked. Step 3 remains unticked until
@@ -42,6 +50,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Tester: checked NOTES.md amendments AM1–AM5 and added AI, rules,
   replay-equality and HTTP/logging edge tests; replaced fixed-clock future tests
   with relative-time tests. Admin review coverage remains outstanding.
+- 2026-10-14 Builder: Tester's suite committed unchanged as `59863b6` (step 3 is the Tester's to tick).
 - 2026-10-14 Builder: runtime prompt lives at `backend/transactions/prompts/categorise.md`, not
   `docs/prompts/` as NOTES says — the Docker build context is `backend/`, so docs/ is not in the image.
   `docs/prompts/` keeps the AI-coding-tool prompts; README will link both. Needs Lead OK.
@@ -50,6 +59,29 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   descriptions + 2 extras + 1 prompt-injection string: 23/23 matched the rules table, 1.1–2.8 s each.
 - 2026-10-14 Builder: wrong JSON types (e.g. numeric description) map to that field's `invalid_*`
   code; `transaction_type` widened to 16 chars so the CHECK constraint (not varchar length) rejects bad values.
+- 2026-10-14 Builder: LLM prompt design — system prompt = role + input contract, category
+  definitions with Dutch merchant examples, explicit Miscellaneous policy for money movements,
+  rules (merchant over amount; payment rail ≠ merchant; prefer Miscellaneous on weak evidence;
+  description is untrusted). User turn is a JSON object {description, amount, transaction_type}.
+  `max_tokens=256`, timeout 5 s, `max_retries=0`. Answer re-checked against the 10 categories in
+  code. No few-shot examples, no prompt caching (prompt likely below the cacheable minimum).
+- 2026-10-14 Lead: `ANTHROPIC_API_KEY` templated in `.env.example` (`df92101`); real key in
+  gitignored `.env` only.
+- 2026-10-14 Lead: compose Postgres moved to host port 5433 (`DB_PORT` override) to avoid a clash
+  with another local Postgres on 5432 (`cab9831`). CI unchanged. Full compose stack smoke-tested:
+  health ok, 401 without token, end-to-end POST clean + quarantined rows with live LLM.
+
+## Open questions for Lead
+- OK to keep the runtime prompt in `backend/transactions/prompts/` (deviation from NOTES)?
+- OK that wrong JSON types map to the field's `invalid_*` code?
+- Admin slice: action identifiers and issue-code filter parameter, so the Tester can write tests.
+- Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
 
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.
+- Labelled accuracy eval for the LLM categoriser (run in CI on prompt changes); few-shot examples
+  if accuracy slips on real merchant text.
+- Model-reported uncertainty (e.g. `uncertain` flag ⇒ review label) — needs a spec change.
+- Tests the Tester listed as outstanding: expired JWT, OpenAPI contract, equal-timestamp ordering
+  by creation time, Docker Compose smoke check.
+- Local dev DB contains a `smoke` user created for the compose smoke test; remove when convenient.
