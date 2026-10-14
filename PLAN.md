@@ -6,8 +6,9 @@ Spec: `NOTES.md` · Branch: `feat/transactions` → `fix/review-round-1` · PRs:
 review rounds 1–2 fixes, AM8, exported prompts and README updates; CI green. Round 2 accepted as the
 final review; PR #2 ready for the Lead to merge (step 10). See *Open questions for Lead* below.
 
-> Commit SHAs below refer to the branch they were made on. Squash merges collapse them on `main`
-> (PR #1 = `1000ff1`), so keep `feat/transactions` and `fix/review-round-1` on origin for traceability.
+> History restored 2026-10-14: `main` was rebuilt from the branch commits (PR #1 and #2 had been
+> squash-merged), so every SHA below is on `main`. Round-1 fixes first made on `feat/transactions`
+> (`b6426b0`, `7ed791d`) are cited by their `main` equivalents.
 
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
@@ -25,7 +26,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 1. Spec written in `NOTES.md` (problem, assumptions, model, endpoints, edge cases, cut line) — **Lead**
 - [ ] 2. Spec gap review; gaps resolved or labelled assumptions — Tester → **Lead**
 - [ ] 3. Contract tests written; suite is red for the right reason — Tester
-  - Suites committed `59863b6`, `9bc7cbe` (feat), `52538b1`, `adcd2e3` (PR #2), each red for the right reason when landed. Tester to tick.
+  - Suites committed `59863b6`, `9bc7cbe`, `5733146`, `74fdcc8`, each red for the right reason when landed. Tester to tick.
 - [ ] 4. Tests reviewed (do they pin the spec, not guesses?) — **Lead**
 - [ ] 5. Build plan approved (files, models, order of slices) — Builder → **Lead**
 - [ ] 6. Slice 1: model + migration + validation/quarantine service + 3 endpoints, rules categoriser only — green, diff read by Lead — Builder / **Lead**
@@ -37,30 +38,29 @@ and append the commit SHA. Agents never tick **Lead** boxes.
     Built `4d84b93`; `make test lint` green (all suites). Awaiting Lead diff read.
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
   - Written `640710d`; Lead's stack reasoning and exported prompts (`docs/prompts/`) added on PR #2. Awaiting Lead read.
-- [x] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate — `373b376`
+- [x] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate — `d884101`
   - PR #1: template, Backend check green at merge. PR #2: template; Backend, Docker Compose smoke and
-    CodeRabbit green at `373b376` (258 tests).
+    CodeRabbit green at `d884101` (258 tests).
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
   - Round 1 ran in the Tester's thread on a stale checkout (R1–R2 invalid), so it didn't count as
-    independent. Round 2 ran in a fresh thread on PR #2 at `d0c5c46` (one attempt reviewed the wrong
+    independent. Round 2 ran in a fresh thread on PR #2 at `54f1976` (one attempt reviewed the wrong
     repo and was discarded); its two findings R10–R11 are fixed. All findings triaged, below.
     **Lead accepted round 2 as closing this step (2026-10-14); no round 3.**
-  - SHAs: round-1 fixes were made on `feat/transactions` (shown) and replayed onto PR #2 (in brackets).
 
   | # | Finding | Triage | Note |
   |---|---|---|---|
   | R1 | Admin registration absent (BLOCKER) | invalid (stale) | Built in `4d84b93`; 13/13 admin tests pass at HEAD |
   | R2 | README still scaffold | invalid (stale) | Written in `640710d` |
-  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fixed** `b6426b0` (`5d897d5`) | AM7(c); reproduced |
-  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fixed** `b6426b0` (`5d897d5`) | AM6 policy; reproduced (unknown key and description) |
-  | R5 | Rules put salary/transfer/refund under spending categories | **fixed** `b6426b0` (`5d897d5`) | AM7(a); reproduced |
-  | R6 | Anthropic constructor outside try → no fallback | **fixed** `b6426b0` (`5d897d5`) | AM7(b); reproduced |
+  | R3 | `"1e1000000"` amount → decimal.Overflow → 500 | **fixed** `0377e5c` | AM7(c); reproduced |
+  | R4 | U+0000 anywhere in body → Postgres DataError → 500 | **fixed** `0377e5c` | AM6 policy; reproduced (unknown key and description) |
+  | R5 | Rules put salary/transfer/refund under spending categories | **fixed** `0377e5c` | AM7(a); reproduced |
+  | R6 | Anthropic constructor outside try → no fallback | **fixed** `0377e5c` | AM7(b); reproduced |
   | R7 | Concurrent identical first submissions can both call the AI | accept | One row stored; extra call costs < $0.001; preventing it means a DB lock held across a network call |
   | R8 | Admin reviewers see all owners' rows | accept / defer | Internal ops tool, staff + model permission; per-owner admin scoping deferred to multi-tenant work |
-  | R9 | No endpoint-level explicit `permission_classes` | **fixed** `7ed791d` (`c59dc95`) | No behaviour change, covered by existing auth tests |
-  | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `74e442e` | AM8(a): 400, nothing stored; reproduced |
-  | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `74e442e` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
-  | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `ecb5038` | api healthcheck; verified CI-style locally |
+  | R9 | No endpoint-level explicit `permission_classes` | **fixed** `8c15792` | No behaviour change, covered by existing auth tests |
+  | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `9c57451` | AM8(a): 400, nothing stored; reproduced |
+  | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `9c57451` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
+  | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `bdecc3d` | api healthcheck; verified CI-style locally |
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
 
 ## Decisions (append as you go)
@@ -103,7 +103,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   `"timestamp": 1700000000`, `"amount": true`, `"transaction_type": ["debit"]`) gets that field's
   existing `invalid_*` code and quarantines the row. No new `invalid_type` code, no coercion
   (flag, don't fix). Only exception stays as specified: `transaction_id` may be string or integer.
-  Already implemented in `8c1f8a8`; covered since `52538b1` (`test_wrong_json_types_are_flagged_without_coercion`).
+  Already implemented in `8c1f8a8`; covered since `5733146` (`test_wrong_json_types_are_flagged_without_coercion`).
 - 2026-10-14 Tester: added lightweight admin review HTTP contracts in
   `backend/tests/test_transaction_admin.py`; lint passes, tests are red because
   transaction admin URLs are not registered. No Lead steps ticked. (Resolved: admin built `4d84b93`, 13/13 pass.)
@@ -121,10 +121,10 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   Twelve regression cases currently fail for the reproduced bugs; twelve pass.
   Concurrent AI-call and admin ownership policies remain unpinned. (Resolved in triage: R7 accepted,
   R8 deferred; neither needs a test.)
-- 2026-10-14 Lead: PR #1 squash-merged at `2d0bb01` (main `1000ff1`), before step 9 and before the
+- 2026-10-14 Lead: PR #1 squash-merged at `2d0bb01` (then main `1000ff1`), before step 9 and before the
   round-1 fixes. The 7 later commits were replayed unchanged onto `fix/review-round-1` → PR #2.
-  SHAs in the step 9 table refer to `feat/transactions`; on PR #2 they are R3–R6 `5d897d5`,
-  R9 `c59dc95`, tests `52538b1`.
+  PR #2 was squash-merged too (`ac1444a`). History then restored on `main` from the branches (see top),
+  where R3–R6 are `0377e5c`, R9 `8c15792`, tests `5733146`.
 - 2026-10-14 Lead: review round 2 (fresh thread, correct repo) found R10–R11; policy = NOTES AM8
   (reject with 400 what can't be stored faithfully: key collisions after NUL replacement, nesting
   > 32 levels). Lossless alternative (extra raw-text column) rejected: migration + breaks AM6
@@ -133,7 +133,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   the JSON parser, not our check) also returns 400 `validation_error`; verified manually only.
 - 2026-10-14 Tester: added 15 AM8 contracts in `test_transaction_unstorable_bodies.py`;
   4 pass and 11 fail for the pending collision/depth fixes. Small synthetic
-  fixtures only; no application code or Lead checklist steps changed. (Resolved: all pass after `74e442e`.)
+  fixtures only; no application code or Lead checklist steps changed. (Resolved: all pass after `9c57451`.)
 - 2026-10-14 Lead: README stack reasoning = chosen to match SOUS's stack (OfferZen profile), not the
   Lead's native stack, so some latitude asked for in a code walk-through. Builder exported all
   prompts to `docs/prompts/` (Builder-session prompts verbatim from the session export).
@@ -142,12 +142,19 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   (3) approve re-runs API validation, so `transaction_id`, `currency` and `category` are required.
   Superuser delete and audited edits of categorised rows stay possible later as deliberate features.
 - 2026-10-14 Lead: accepted review round 2 as closing step 9; no round 3. Merge of PR #2 is the Lead's.
+- 2026-10-14 Lead: restore granular commit history on `main` (brief scores "small and logical
+  commits"). Builder rebuilt it on `history/main` (scaffold → slice commits → PR #2 commits → CSV
+  note), tree verified identical to `main` + the CSV note; the Lead force-pushes it to `main`.
 
 ## Open questions for Lead
 - Export your prompts from the Codex Tester/Reviewer threads into `docs/prompts/codex-sessions/`
   (the Builder can't see them).
 - Merge PR #2 (agents never merge).
 - Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b once satisfied; Tester to tick 3.
+
+- 2026-10-14 Tester: added 31 pure-function unit cases without HTTP/database access;
+  pytest-cov measures statement and branch coverage for core/transactions, with
+  reports retained by CI and scoped measured figures documented in README.
 
 ## Deferred (next PRs)
 - Per-owner scoping in the admin (review R8).
