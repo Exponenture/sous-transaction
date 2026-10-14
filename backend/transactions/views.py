@@ -2,6 +2,7 @@ from django.db.models import F
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from transactions import services
@@ -17,6 +18,7 @@ from transactions.serializers import (
 
 class TransactionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     parser_classes = [JSONParser]
+    permission_classes = [IsAuthenticated]  # querysets are additionally scoped to the owner
     serializer_class = TransactionSerializer
 
     def get_queryset(self):
