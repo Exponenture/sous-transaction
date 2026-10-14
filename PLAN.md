@@ -34,5 +34,14 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Naive timestamps = Europe/Amsterdam local time (Lead).
 - 2026-10-14 Spec amendments AM1–AM5 after test-plan review: LLM mock seam, rules mapping, replay equality, admin approve semantics, added cases (Lead).
 
+- 2026-10-14 Tester: added black-box submission/retrieval/integrity contract tests under
+  `backend/tests/`; coverage, explicit assumptions and remaining slice tests are in
+  `docs/testing/transactions.md`. No Lead steps ticked. Step 3 remains unticked until
+  the tests have a commit SHA and outstanding contract decisions are reviewed.
+
+- 2026-10-14 Tester: checked NOTES.md amendments AM1–AM5 and added AI, rules,
+  replay-equality and HTTP/logging edge tests; replaced fixed-clock future tests
+  with relative-time tests. Admin review coverage remains outstanding.
+
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.
