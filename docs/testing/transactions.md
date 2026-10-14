@@ -79,3 +79,13 @@ afterwards. Docker CI execution has not been verified locally.
 
 Concurrent duplicate AI-call policy and admin ownership policy remain Lead decisions;
 no tests invent those contracts. Exceptional-path log redaction still needs coverage.
+
+## AM8 unfaithful-body contracts
+
+`test_transaction_unstorable_bodies.py` adds 15 cases for key collisions after
+NUL replacement (including nested objects and arrays and reversed key order),
+accepted depth 32, rejected depth 33, a single deep R11 reproduction, and
+rejection before field validation or existing-key conflicts. Rejections assert
+400 validation_error, no provider construction and no new rows. Identical
+sanitised keys in separate objects remain valid. Fixtures are small synthetic
+payloads; no CSV or full dataset is used.
