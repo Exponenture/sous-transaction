@@ -1,11 +1,12 @@
 from django.db.models import F
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import exceptions, mixins, status, viewsets
-from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from transactions import services
+from transactions import services, validation
 from transactions.models import Transaction
+from transactions.parsers import DepthSafeJSONParser
 from transactions.serializers import (
     ALL,
     TransactionDetailSerializer,
@@ -16,7 +17,8 @@ from transactions.serializers import (
 
 
 class TransactionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    parser_classes = [JSONParser]
+    parser_classes = [DepthSafeJSONParser]
+    permission_classes = [IsAuthenticated]  # querysets are additionally scoped to the owner
     serializer_class = TransactionSerializer
 
     def get_queryset(self):
@@ -52,7 +54,10 @@ class TransactionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, views
     def create(self, request):
         if not isinstance(request.data, dict):
             raise exceptions.ValidationError({"body": ["Must be a JSON object."]})
-        row, created = services.submit_transaction(owner=request.user, payload=request.data)
+        try:
+            row, created = services.submit_transaction(owner=request.user, payload=request.data)
+        except validation.Unstorable as exc:
+            raise exceptions.ValidationError({"body": [str(exc)]}) from None
         return Response(
             TransactionSerializer(row).data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,

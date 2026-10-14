@@ -30,6 +30,11 @@ OUTPUT_FORMAT = {
 
 # Checked in order; first match wins. Whole-word, case-insensitive (NOTES AM2).
 RULES = [
+    # Money movements first: "Salary from School Employer" is not Education (NOTES AM7a).
+    (
+        Category.MISCELLANEOUS,
+        ["salary", "payroll", "transfer", "refund", "atm", "withdrawal", "credit card"],
+    ),
     (Category.DINING_OUT, ["restaurant", "cafe", "café", "thuisbezorgd", "uber eats", "deliveroo"]),
     (
         Category.GROCERIES,
@@ -93,13 +98,13 @@ def by_llm(*, description: str, amount, transaction_type) -> str | None:
     """One Claude call, no retries. None on any failure; never sees account or owner."""
     if not settings.ANTHROPIC_API_KEY:
         return None
-    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=5, max_retries=0)
     context = {
         "description": description,
         "amount": None if amount is None else str(amount),
         "transaction_type": transaction_type,
     }
-    try:
+    try:  # client construction included: it can fail too (NOTES AM7b)
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=5, max_retries=0)
         response = client.messages.create(
             model=MODEL,
             max_tokens=256,

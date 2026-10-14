@@ -52,7 +52,7 @@ own transactions; anyone else's id returns 404. Errors always have the shape
 
 | Method | Path | Result |
 |---|---|---|
-| `POST` | `/api/transactions/` | **201** new row (categorised or quarantined) · **200** identical replay · **409** same `transaction_id`, different payload · **400** body isn't a JSON object |
+| `POST` | `/api/transactions/` | **201** new row (categorised or quarantined) · **200** identical replay · **409** same `transaction_id`, different payload · **400** body isn't a JSON object, or can't be stored faithfully (see below) |
 | `GET` | `/api/transactions/` | Your transactions, 20 per page, newest `timestamp` first. Default `status=categorised`; `?status=quarantined\|rejected\|all`, `?category=<one of 10>` |
 | `GET` | `/api/transactions/{id}/` | One transaction in any status, plus `raw_payload` (the request exactly as sent) |
 
@@ -96,8 +96,12 @@ assumption and leave the row categorised.
 
 | Severity | Codes |
 |---|---|
-| Blocking | `missing_field`, `invalid_amount` (not finite, > 2 dp, ≥ 10¹²), `zero_amount`, `invalid_timestamp`, `future_timestamp` (> now + 5 min), `nonexistent_local_time` (DST gap), `invalid_transaction_type`, `sign_type_mismatch` (debit must be negative, credit positive), `invalid_currency`, `invalid_account_number`, `invalid_description`, `invalid_transaction_id` |
+| Blocking | `missing_field`, `invalid_amount` (not finite, > 2 dp, ≥ 10¹²), `zero_amount`, `invalid_timestamp`, `future_timestamp` (> now + 5 min), `nonexistent_local_time` (DST gap), `invalid_transaction_type`, `sign_type_mismatch` (debit must be negative, credit positive), `invalid_currency`, `invalid_account_number`, `invalid_description`, `invalid_transaction_id`, `unsupported_character` (U+0000, which PostgreSQL can't store, replaced with U+FFFD) |
 | Warning | `ambiguous_local_time` (DST overlap, first occurrence assumed), `categorisation_fallback` (AI unavailable, rules used) |
+
+Two narrow exceptions are rejected with **400** instead, because quarantining means storing the
+body and these can't be stored faithfully: keys in one object that become identical once U+0000 is
+replaced, and JSON nested more than 32 levels deep. Neither occurs in real bank data.
 
 A field sent as the wrong JSON type (e.g. `"description": 123`) gets that field's `invalid_*` code;
 nothing is coerced. The database independently enforces that a categorised row has every field,
@@ -117,7 +121,8 @@ sign that contradicts the type, and every timestamp lacks a timezone.
    code. Thinking off, `max_tokens=256`, 5 s timeout, no retries.
 3. **Keyword rules** if Claude fails for any reason (no key, timeout, API error, refusal, malformed
    or off-list answer): case-insensitive whole-word matches, first category wins, else
-   Miscellaneous. The row gets a `categorisation_fallback` warning.
+   Miscellaneous. Money-movement words (salary, transfer, refund, ATM, credit card) are checked
+   first, so "Salary from School Employer" stays Miscellaneous. The row gets a `categorisation_fallback` warning.
 
 Quarantined rows are categorised too, so a reviewer starts from a suggestion.
 
@@ -169,6 +174,14 @@ The original request (`raw_payload`) is read-only. The admin can't add or delete
 
 ## Why Django + DRF + PostgreSQL
 
+I chose this stack to match SOUS's own (Django/DRF and PostgreSQL, per the SOUS profile on
+OfferZen), so the code can be read in the team's idioms and judged on how it would fit their
+codebase. It is not my native stack; day to day I build in TypeScript/Node with Supabase. I leaned on
+Django's conventions and on the AI workflow below, and I'd ask for some latitude on Django-specific
+detail in a code walk-through.
+
+It also suits the problem:
+
 - **Django/DRF** gives the parts this problem needs without assembling them: ORM and migrations,
   database constraints declared on the model, an admin that is the review UI, JWT auth, pagination,
   and OpenAPI generation. Its conventions (thin views, services, explicit serializers) keep a small
@@ -208,8 +221,11 @@ The work was split across AI agents with separated duties, with a human lead app
 - **Reviewer (Codex, fresh thread):** adversarial PR review with
   [`docs/prompts/adversarial-review.md`](docs/prompts/adversarial-review.md).
 
-Prompts in the repo:
+All prompts are in [`docs/prompts/`](docs/prompts/README.md):
+- [Every prompt the Lead gave the Builder](docs/prompts/builder-session.md), verbatim and in order
+- [Builder → Codex handoffs](docs/prompts/codex-handoffs.md) and the
+  [review prompt](docs/prompts/adversarial-review.md); Codex's [test plan](docs/prompts/codex-test-plan.md)
+  and [review output](docs/prompts/reviews/)
 - Runtime categorisation prompt: [`backend/transactions/prompts/categorise.md`](backend/transactions/prompts/categorise.md)
-- Agent instructions: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md); the spec
+- Standing agent instructions: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md); the spec
   [`NOTES.md`](NOTES.md) is the prompt both Builder and Tester work from
-- Review prompt: [`docs/prompts/adversarial-review.md`](docs/prompts/adversarial-review.md)
