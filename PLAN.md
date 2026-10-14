@@ -2,8 +2,8 @@
 
 Spec: `NOTES.md` · Branch: `feat/transactions` · PR: (not opened)
 
-**Status 2026-10-14:** slices 1–2 built and green, awaiting Lead diff read. Slice 3 blocked on admin
-tests. Slice 4 (README) can start any time. See *Open questions for Lead* below.
+**Status 2026-10-14:** slices 1–2 built and green, awaiting Lead diff read. Slice 3 admin tests have
+landed; awaiting Lead review before build. Slice 4 (README) can start any time. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -27,8 +27,9 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - [ ] 7. Slice 2: LLM categoriser (Anthropic SDK, `backend/transactions/prompts/categorise.md`, timeout, fallback) — green, diff read by Lead — Builder / **Lead**
   - Built `59d4e2c`; full suite + live smoke test green. Awaiting Lead diff read.
 - [ ] 7a. Slice 3: admin review queue (filters, approve/reject actions) — green, diff read by Lead — Builder / **Lead**
-  - **Blocked:** no admin tests yet. Tester needs Lead to pin admin action identifiers and the
-    issue-code filter parameter first (`docs/testing/transactions.md`).
+  - Unblocked: Tester's admin tests landed (`backend/tests/test_transaction_admin.py`). They find
+    action identifiers and the issue filter parameter from the admin UI, so no naming decision is
+    needed. Awaiting Lead review of these tests before build.
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
 - [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
@@ -74,14 +75,13 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   existing `invalid_*` code and quarantines the row. No new `invalid_type` code, no coercion
   (flag, don't fix). Only exception stays as specified: `transaction_id` may be string or integer.
   Already implemented in `8c1f8a8`; Tester to add coverage.
-
-## Open questions for Lead
-- Admin slice: action identifiers and issue-code filter parameter, so the Tester can write tests.
-- Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
-
 - 2026-10-14 Tester: added lightweight admin review HTTP contracts in
   `backend/tests/test_transaction_admin.py`; lint passes, tests are red because
   transaction admin URLs are not registered. No Lead steps ticked.
+
+## Open questions for Lead
+- Review the Tester's admin tests (`test_transaction_admin.py`) and give the go for slice 3.
+- Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
 
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.

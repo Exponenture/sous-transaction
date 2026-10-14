@@ -54,10 +54,14 @@ assumed for the AM1 structured-output contract.
 
 ## Remaining suites for later plan slices
 
-Before slice 3, specify admin action identifiers and issue-filter parameters, then
-add admin HTTP tests for staff permissions, approve/reject, revalidation, review
-attribution and read-only raw payload. Add rejected-record retrieval assertions
-through that review flow.
+`test_transaction_admin.py` now covers anonymous/non-staff access, staff without
+model permission, corrected-field approval, failed approval with an admin error,
+reviewer/time attribution, rejection, actions restricted to quarantined rows,
+read-only raw payload, status/issue filters, rejected retrieval and replay.
+It uses one dirty transaction per test and a second clean row only for filtering.
+Action identifiers and issue-filter parameters are discovered from the admin UI
+rather than hard-coded. The transaction admin registration is currently missing,
+so these tests intentionally fail at URL resolution until slice 3 is built.
 
 Also outstanding: equal-timestamp creation-order tests with distinct creation
 instants, expired JWT tests, OpenAPI contracts and a Docker
