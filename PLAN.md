@@ -2,7 +2,7 @@
 
 Spec: `NOTES.md` · Branch: `feat/transactions` · PR: (not opened)
 
-**Status 2026-10-14:** slices 1–3 built and green, awaiting Lead diff read. Slice 4 (README) next. Slice 4 (README) can start any time. See *Open questions for Lead* below.
+**Status 2026-10-14:** slices 1–4 done, awaiting Lead diff read. Next: step 8 (open the PR). Slice 4 (README) can start any time. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
@@ -29,6 +29,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   - Tests landed in `9bc7cbe` (they discover action names and the issue filter from the admin UI).
     Built `4d84b93`; `make test lint` green (all suites). Awaiting Lead diff read.
 - [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
+  - Written `SLICE4SHA`. Awaiting Lead read (personal reasoning for the stack choice is the Lead's to add).
 - [ ] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate
 - [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
 - [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
@@ -83,6 +84,10 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   `currency` and `category` before it can be approved; existing warnings are kept. Flag for Lead.
 
 ## Open questions for Lead
+- README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
+  the README currently gives a neutral technical rationale.
+- Brief asks for the AI-coding prompts used: export the Claude Code / Codex session prompts into
+  `docs/prompts/` (agents can't reconstruct them faithfully).
 - Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
 
 ## Deferred (next PRs)
