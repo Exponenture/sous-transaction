@@ -57,8 +57,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Builder: LLM call uses `claude-haiku-5-5` with thinking disabled and a JSON-schema
   enum of the 10 categories (`output_config.format`). Live smoke test on the 20 sample
   descriptions + 2 extras + 1 prompt-injection string: 23/23 matched the rules table, 1.1–2.8 s each.
-- 2026-10-14 Builder: wrong JSON types (e.g. numeric description) map to that field's `invalid_*`
-  code; `transaction_type` widened to 16 chars so the CHECK constraint (not varchar length) rejects bad values.
+- 2026-10-14 Builder: `transaction_type` widened to 16 chars so the CHECK constraint (not varchar length) rejects bad values.
 - 2026-10-14 Builder: LLM prompt design — system prompt = role + input contract, category
   definitions with Dutch merchant examples, explicit Miscellaneous policy for money movements,
   rules (merchant over amount; payment rail ≠ merchant; prefer Miscellaneous on weak evidence;
@@ -70,12 +69,20 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Lead: compose Postgres moved to host port 5433 (`DB_PORT` override) to avoid a clash
   with another local Postgres on 5432 (`cab9831`). CI unchanged. Full compose stack smoke-tested:
   health ok, 401 without token, end-to-end POST clean + quarantined rows with live LLM.
+- 2026-10-14 Lead: a field sent as the wrong JSON type (e.g. `"description": 123`,
+  `"timestamp": 1700000000`, `"amount": true`, `"transaction_type": ["debit"]`) gets that field's
+  existing `invalid_*` code and quarantines the row. No new `invalid_type` code, no coercion
+  (flag, don't fix). Only exception stays as specified: `transaction_id` may be string or integer.
+  Already implemented in `8c1f8a8`; Tester to add coverage.
 
 ## Open questions for Lead
 - OK to keep the runtime prompt in `backend/transactions/prompts/` (deviation from NOTES)?
-- OK that wrong JSON types map to the field's `invalid_*` code?
 - Admin slice: action identifiers and issue-code filter parameter, so the Tester can write tests.
 - Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
+
+- 2026-10-14 Tester: added lightweight admin review HTTP contracts in
+  `backend/tests/test_transaction_admin.py`; lint passes, tests are red because
+  transaction admin URLs are not registered. No Lead steps ticked.
 
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.
