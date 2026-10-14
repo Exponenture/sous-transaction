@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, DecimalException, InvalidOperation
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -34,12 +34,14 @@ ISSUE_CODES = (
     "invalid_transaction_id",
     "ambiguous_local_time",
     "categorisation_fallback",
+    "unsupported_character",
 )
 FUTURE_TOLERANCE = timedelta(minutes=5)
 MAX_AMOUNT = Decimal(10) ** 12
 CENT = Decimal("0.01")
 ACCOUNT_RE = re.compile(r"[A-Z]{2}[A-Z0-9]{8,32}")
 CURRENCY_RE = re.compile(r"[A-Z]{3}")
+NUL, REPLACEMENT = "\x00", "\ufffd"
 
 
 def issue(code, field, message, severity=BLOCKING):
@@ -59,6 +61,36 @@ class Invalid(Exception):
 class Parsed:
     values: dict = field(default_factory=dict)
     issues: list = field(default_factory=list)
+
+
+def _scrub(value):
+    """Replace U+0000 at any depth (keys too). Returns (clean value, whether any was found)."""
+    if isinstance(value, str):
+        return value.replace(NUL, REPLACEMENT), NUL in value
+    if isinstance(value, list):
+        scrubbed = [_scrub(item) for item in value]
+        return [item for item, _ in scrubbed], any(found for _, found in scrubbed)
+    if isinstance(value, dict):
+        clean, found = {}, False
+        for key, item in value.items():
+            (key, key_found), (item, item_found) = _scrub(key), _scrub(item)
+            clean[key] = item
+            found = found or key_found or item_found
+        return clean, found
+    return value, False
+
+
+def sanitise(payload: dict) -> tuple[dict, list]:
+    """PostgreSQL can't store U+0000; replace it and flag each affected top-level key (AM6)."""
+    clean, issues = {}, []
+    for key, value in payload.items():
+        (key, key_found), (value, value_found) = _scrub(key), _scrub(value)
+        clean[key] = value
+        if key_found or value_found:
+            issues.append(
+                issue("unsupported_character", key, "Contained U+0000; replaced with U+FFFD.")
+            )
+    return clean, issues
 
 
 def _blank(value):
@@ -83,10 +115,13 @@ def _amount(value):
         raise Invalid("invalid_amount", "Not a decimal number.") from None
     if not amount.is_finite():
         raise Invalid("invalid_amount", "Must be finite.")
-    if abs(amount) >= MAX_AMOUNT:
-        raise Invalid("invalid_amount", "Must be less than 10^12 in absolute value.")
-    if amount != amount.quantize(CENT):
-        raise Invalid("invalid_amount", "At most 2 decimal places.")
+    try:  # extreme exponents (e.g. 1e1000000) overflow the decimal context (NOTES AM7c)
+        if abs(amount) >= MAX_AMOUNT:
+            raise Invalid("invalid_amount", "Must be less than 10^12 in absolute value.")
+        if amount != amount.quantize(CENT):
+            raise Invalid("invalid_amount", "At most 2 decimal places.")
+    except DecimalException:
+        raise Invalid("invalid_amount", "Out of the representable decimal range.") from None
     if amount == 0:
         raise Invalid("zero_amount", "Amount is zero.")
     return amount.quantize(CENT)
