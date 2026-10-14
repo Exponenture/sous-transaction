@@ -58,7 +58,7 @@ TEMPLATES = [
     }
 ]
 
-DATABASES = {"default": env.db("DATABASE_URL", default="postgres://sous:sous@localhost:5432/sous")}
+DATABASES = {"default": env.db("DATABASE_URL", default="postgres://sous:sous@localhost:5433/sous")}
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
