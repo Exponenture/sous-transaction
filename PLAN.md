@@ -32,6 +32,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Dirty input is accepted and quarantined with labelled issues, not rejected with 400 (Lead).
 - 2026-10-14 Logically impossible rows (e.g. sign/type mismatch, ~49% of sample CSV) are blocking (Lead).
 - 2026-10-14 Naive timestamps = Europe/Amsterdam local time (Lead).
+- 2026-10-14 Spec amendments AM1–AM5 after test-plan review: LLM mock seam, rules mapping, replay equality, admin approve semantics, added cases (Lead).
 
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.

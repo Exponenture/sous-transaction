@@ -125,6 +125,46 @@ timestamp; `DEBIT ` with case/space; account number with spaces/lowercase; empty
 (every field missing); JSON array body; replay identical vs conflicting; same `transaction_id` for
 two different owners; LLM returns an off-list category; LLM times out; no API key.
 
+## Amendments (Lead-approved 2026-10-14, after test-plan review)
+**AM1. LLM seam.** Categorisation lives in `transactions/categorisation.py`. The LLM path builds
+`anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=5, max_retries=0)` (module-level
+import `anthropic` in that file) and calls `client.messages.create(...)` once per categorisation.
+Tests mock `transactions.categorisation.anthropic.Anthropic`. Empty `ANTHROPIC_API_KEY` ⇒ the
+client is never constructed; rules are used with `categorisation_fallback`. Raised exceptions,
+timeouts, malformed responses and off-list categories are all failures ⇒ fallback.
+
+**AM2. Rules contract.** Case-insensitive, whole-word keyword matching. The keyword list is an
+implementation detail; this mapping of the sample descriptions is the contract:
+| description | category |
+|---|---|
+| Albert Heijn Purchase, AH Online Groceries | Groceries |
+| NS Train Ticket, Car Lease Payment | Transportation |
+| Eneco Energy Bill, Payment to Ziggo, T-Mobile Bill Payment, Municipal Tax Payment | Utilities |
+| Netflix Subscription | Entertainment |
+| Bol.com Purchase | Shopping |
+| Rent Payment | Housing |
+| Tax Refund, Salary from Employer, Transfer to ING Account, Bunq Transfer, PayPal Transfer, Payment to Rabobank, Payment to Credit Card, iDEAL Payment, Geldmaat ATM Withdrawal | Miscellaneous |
+| anything with no keyword match | Miscellaneous |
+No sample description maps to Dining Out, Healthcare or Education; rules for those exist but are not pinned.
+
+**AM3. Identical replay.** Two payloads are identical when the parsed JSON objects are equal
+(key order irrelevant; JSON numbers compared by value, so `12.5` == `12.50`; a string never equals
+a number, so `"12.50"` ≠ `12.5`; an extra or missing key — including unknown keys — is a difference).
+Replay of a row in any status returns it with 200.
+
+**AM4. Admin approve.** Allowed on `quarantined` rows only. Recomputes `issues` from the stored
+(reviewer-edited) field values, not from `raw_payload`. No blocking issues ⇒ `categorised`,
+warnings kept, `reviewed_by/at` set; otherwise the row stays quarantined with the recomputed issues
+and the admin shows an error. The reviewer may set `category` directly; approve never calls the
+LLM. Reject is allowed on `quarantined` rows only ⇒ `rejected`, `reviewed_by/at` set.
+
+**AM5. Added cases.** Non-object body (array, scalar, malformed JSON) ⇒ 400, nothing stored.
+PUT/PATCH/DELETE on both routes ⇒ 405. Issue shape is exactly `{code, field, severity, message}`
+with `severity` ∈ {`blocking`, `warning`} and `field` null when not field-specific. Account number
+never appears in log output (check with `caplog` on clean and dirty submissions). The future-
+timestamp boundary is tested relative to now (now+4 min clean, now+6 min quarantined); no
+time-freezing dependency.
+
 ## Cut line
 Must: model + validation/quarantine + 3 endpoints + rules categoriser + LLM categoriser + docs.
 Should: admin approve/reject actions. Deferred: review API, description-level category cache,
