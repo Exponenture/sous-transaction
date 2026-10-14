@@ -2,7 +2,7 @@
 
 Spec: `NOTES.md` · Branch: `feat/transactions` · PR: [#1](https://github.com/Exponenture/sous-transaction/pull/1)
 
-**Status 2026-10-14:** slices 1–4 done, awaiting Lead diff read. PR #1 open; awaiting CI, then step 9 adversarial review. Slice 4 (README) can start any time. See *Open questions for Lead* below.
+**Status 2026-10-14:** slices 1–4 done, awaiting Lead diff read. PR #1 open; awaiting CI, then step 9 adversarial review. See *Open questions for Lead* below.
 Copy this file to `PLAN.md` at the start of a task. Tick a box only when its "done when" is true,
 and append the commit SHA. Agents never tick **Lead** boxes.
 
