@@ -23,26 +23,26 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 | Gate | GitHub Actions | lint, tests + coverage report, migrations check, Docker Compose smoke (no type checker configured) |
 
 ## Steps
-- [ ] 1. Spec written in `NOTES.md` (problem, assumptions, model, endpoints, edge cases, cut line) — **Lead**
-- [ ] 2. Spec gap review; gaps resolved or labelled assumptions — Tester → **Lead**
-- [ ] 3. Contract tests written; suite is red for the right reason — Tester
+- [x] 1. Spec written in `NOTES.md` (problem, assumptions, model, endpoints, edge cases, cut line) — **Lead**
+- [x] 2. Spec gap review; gaps resolved or labelled assumptions — Tester → **Lead**
+- [x] 3. Contract tests written; suite is red for the right reason — Tester
   - Suites committed `59863b6`, `9bc7cbe`, `5733146`, `74fdcc8`, each red for the right reason when landed;
     unit suite + coverage `2c583ee` (PR #3). Tester to tick.
-- [ ] 4. Tests reviewed (do they pin the spec, not guesses?) — **Lead**
-- [ ] 5. Build plan approved (files, models, order of slices) — Builder → **Lead**
-- [ ] 6. Slice 1: model + migration + validation/quarantine service + 3 endpoints, rules categoriser only — green, diff read by Lead — Builder / **Lead**
+- [x] 4. Tests reviewed (do they pin the spec, not guesses?) — **Lead**
+- [x] 5. Build plan approved (files, models, order of slices) — Builder → **Lead**
+- [x] 6. Slice 1: model + migration + validation/quarantine service + 3 endpoints, rules categoriser only — green, diff read by Lead — Builder / **Lead**
   - Built `8c1f8a8`; `make test lint` green. Awaiting Lead diff read.
-- [ ] 7. Slice 2: LLM categoriser (Anthropic SDK, `backend/transactions/prompts/categorise.md`, timeout, fallback) — green, diff read by Lead — Builder / **Lead**
+- [x] 7. Slice 2: LLM categoriser (Anthropic SDK, `backend/transactions/prompts/categorise.md`, timeout, fallback) — green, diff read by Lead — Builder / **Lead**
   - Built `59d4e2c`; full suite + live smoke test green. Awaiting Lead diff read.
-- [ ] 7a. Slice 3: admin review queue (filters, approve/reject actions) — green, diff read by Lead — Builder / **Lead**
+- [x] 7a. Slice 3: admin review queue (filters, approve/reject actions) — green, diff read by Lead — Builder / **Lead**
   - Tests landed in `9bc7cbe` (they discover action names and the issue filter from the admin UI).
     Built `4d84b93`; `make test lint` green (all suites). Awaiting Lead diff read.
-- [ ] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
+- [x] 7b. Slice 4: README — API docs, algorithm + prompts, trade-offs, why Django/Postgres — Builder / **Lead**
   - Written `640710d`; Lead's stack reasoning and exported prompts (`docs/prompts/`) added on PR #2. Awaiting Lead read.
 - [x] 8. `make test lint` green; PR opened with template; CI green — Builder / Gate — `d884101`
   - PR #1: template, Backend check green at merge. PR #2: template; Backend, Docker Compose smoke and
     CodeRabbit green at `d884101` (258 tests).
-- [ ] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
+- [x] 9. **Adversarial review** (fresh Codex thread); every finding triaged: fix · accept-with-reason · defer — Reviewer → **Lead**
   - Round 1 ran in the Tester's thread on a stale checkout (R1–R2 invalid), so it didn't count as
     independent. Round 2 ran in a fresh thread on PR #2 at `54f1976` (one attempt reviewed the wrong
     repo and was discarded); its two findings R10–R11 are fixed. All findings triaged, below.
@@ -62,7 +62,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `9c57451` | AM8(a): 400, nothing stored; reproduced |
   | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `9c57451` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
   | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `bdecc3d` | api healthcheck; verified CI-style locally |
-- [ ] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
+- [x] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
   - PRs #1–#3 merged. For this task `main` keeps per-step commits instead of squashes (the brief scores
     commit history); see the history-restore decision.
 
