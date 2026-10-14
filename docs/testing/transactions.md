@@ -63,6 +63,19 @@ Action identifiers and issue-filter parameters are discovered from the admin UI
 rather than hard-coded. The transaction admin registration is currently missing,
 so these tests intentionally fail at URL resolution until slice 3 is built.
 
-Also outstanding: equal-timestamp creation-order tests with distinct creation
-instants, expired JWT tests, OpenAPI contracts and a Docker
-Compose smoke check. These are not represented as completed by this first suite.
+## Adversarial-review regressions (AM6–AM7)
+
+`test_transaction_review_regressions.py` pins decimal-overflow quarantine,
+recursive NUL sanitisation (keys and values), one unsupported-character issue per
+top-level field, replay against sanitised JSON, movement-before-spending precedence,
+constructor-failure fallback and wrong-type handling. It also checks expired JWTs,
+equal-timestamp creation ordering and the generated OpenAPI contract.
+
+The Docker smoke job runs `backend/tests/docker_smoke.py` against a disposable
+`sous-ci-smoke` Compose project in GitHub Actions and Bitbucket Pipelines. It uses
+two synthetic transactions, no AI key, and checks health, real JWT authentication,
+creation, replay, detail and quarantine filtering. It removes its disposable volumes
+afterwards. Docker CI execution has not been verified locally.
+
+Concurrent duplicate AI-call policy and admin ownership policy remain Lead decisions;
+no tests invent those contracts. Exceptional-path log redaction still needs coverage.

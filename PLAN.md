@@ -105,6 +105,11 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   receipt + blocking `unsupported_character` (NOTES AM6); review fixes pinned as NOTES AM7, which
   also carries the wrong-JSON-type decision so the Tester sees it in the spec.
 
+- 2026-10-14 Tester: added AM6/AM7 adversarial-review regressions, expired JWT,
+  creation-order and OpenAPI contracts; Docker smoke jobs use two synthetic rows.
+  Twelve regression cases currently fail for the reproduced bugs; twelve pass.
+  Concurrent AI-call and admin ownership policies remain unpinned.
+
 ## Open questions for Lead
 - README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
   the README currently gives a neutral technical rationale.
