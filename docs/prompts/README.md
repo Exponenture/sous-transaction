@@ -1,7 +1,17 @@
 # Prompts
 
-Every prompt used to build this project, as the brief asks. How the agents split the work is in
-the root README ("How AI tools were used") and [`AGENTS.md`](../../AGENTS.md).
+## Categorisation prompt (used by the application)
+
+The prompt the API sends to Claude to categorise each transaction:
+[`backend/transactions/prompts/categorise.md`](../../backend/transactions/prompts/categorise.md).
+It ships with the code because the Docker image is built from `backend/`. The README's
+[Categorisation prompt](../../README.md#categorisation-prompt) section shows it in full, with the
+user message format and the response schema that restricts answers to the 10 categories.
+
+## Prompts used to build the project (AI coding tools)
+
+How the agents split the work is in the root README ("How AI tools were used") and
+[`AGENTS.md`](../../AGENTS.md).
 
 | File | What it is |
 |---|---|
@@ -16,7 +26,3 @@ Codex received are the handoffs above plus the spec and standing files below.
 
 Standing instructions every agent read: [`AGENTS.md`](../../AGENTS.md) (engineering rules and roles),
 [`CLAUDE.md`](../../CLAUDE.md) (Builder role), and the spec [`NOTES.md`](../../NOTES.md).
-
-The prompt the **application** sends to Claude at runtime is not here: it ships with the code at
-[`backend/transactions/prompts/categorise.md`](../../backend/transactions/prompts/categorise.md)
-(the Docker image is built from `backend/`).
