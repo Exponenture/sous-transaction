@@ -11,7 +11,7 @@ never silently fixed, never silently dropped.
 ## Scope
 - In: `POST /api/transactions/`, `GET /api/transactions/`, `GET /api/transactions/{id}/`;
   validation + quarantine; AI categorisation with rules fallback; admin review queue; docs.
-- Out: CSV import, batch submission, editing/deleting via the API, a review API, multi-currency
+- Out: CSV import (the SOUS reviewer asked for it to be skipped), batch submission, editing/deleting via the API, a review API, multi-currency
   conversion. `files/transaction_history.csv` is used only as a reference for realistic and dirty data.
 
 ## Assumptions (labelled)
