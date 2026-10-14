@@ -162,7 +162,7 @@ The original request (`raw_payload`) is read-only. The admin can't add or delete
 - **Synchronous AI call in the request.** Simplest thing for single transactions, and Haiku
   answers in 1–3 s. The cost is request latency and a dependency on an external API in the
   write path, bounded by the 5 s timeout and the rules fallback. At volume this belongs in a
-  background job (deferred).
+  background job: see [Future architecture](#future-architecture-out-of-scope).
 - **Rules as fallback, not as the primary.** Rules are deterministic and free but only know
   merchants someone listed; the model generalises to unseen merchants. Keeping both means the API
   never fails because the AI did, and `categorisation_source` makes it visible which one decided.
@@ -172,9 +172,58 @@ The original request (`raw_payload`) is read-only. The admin can't add or delete
   flagged rather than guessed: a skipped time is blocking, a repeated time is a warning.
 - **Admin as the review UI.** Zero front-end code and staff permissions for free; a review API is
   deferred.
-- **Not done (deferred):** CSV import and batch submission (skipped at the SOUS reviewer's request), caching
-  categories per description (the sample has only 20 distinct descriptions), a labelled accuracy
-  eval for the prompt, model-reported uncertainty, a review API. See `PLAN.md`.
+- **Not done (deferred):** CSV import and batch submission (skipped at the SOUS reviewer's request),
+  model-reported uncertainty, a review API, and the four items under
+  [Future architecture](#future-architecture-out-of-scope). See `PLAN.md`.
+
+## Future architecture (out of scope)
+
+Discussed with the SOUS interviewer as the next architectural steps, and deliberately left out of
+this test. Each comes with a short sketch of how we'd build it.
+
+**1. Fast acknowledgement, enrichment afterwards.** A caller such as a Stripe webhook only needs to
+know the transaction was received. It shouldn't wait on an AI call or hold the connection open.
+- The POST validates, stores (or quarantines) and returns at once, with `categorisation_status:
+  "pending"` and no category. The API path stays a single insert, typically well under 100 ms.
+- Categorisation becomes a separate step: a job queued in `transaction.on_commit`, so it only runs
+  once the row is committed.
+- When it finishes, the row moves to `categorised`; `GET` shows `pending` until then. An outbound
+  webhook or event can notify consumers that need the category.
+- Idempotency is unchanged: a replay returns the stored row, whatever its enrichment state.
+
+**2. Learned category mappings, so the AI is the exception.** Most bank descriptions repeat (the
+1,000-row sample has only 20 distinct ones), so most AI calls are re-answering a known question.
+- A `CategoryMapping` table keyed on a normalised description (lower-cased, with dates, reference
+  numbers and card digits stripped) stores the category, its source (`llm`, `rules` or `reviewer`),
+  the prompt/model version, and a hit count.
+- Lookup order: known mapping, then the AI, then the keyword rules. Only a missing mapping, or a
+  failed lookup, invokes the AI, and every new AI answer is saved as a mapping.
+- A reviewer's correction in the admin overwrites the mapping and becomes authoritative, so the
+  system learns from the review queue.
+- Mappings record the prompt version, so changing the prompt or model can invalidate them
+  selectively.
+- Expected effect: after warm-up, nearly every transaction is categorised without an AI call,
+  which is cheaper, faster and deterministic. `categorisation_source: "cache"` keeps it visible.
+
+**3. A queue with retries for the categorisation worker.**
+- A worker queue (Celery + Redis, or a Postgres-backed queue to avoid new infrastructure; a durable
+  workflow engine would also fit) runs the enrichment jobs, keyed by transaction id so a duplicate
+  job is harmless.
+- Retries with exponential backoff and jitter on timeouts, 429s and 5xx; no retry on 4xx.
+- After the last attempt, fall back to the keyword rules with the existing `categorisation_fallback`
+  warning, and record the job in a dead-letter list for inspection.
+- Concurrency and rate limits towards the AI provider, so a burst of transactions can't exhaust the
+  quota.
+
+**4. Evals and observability.**
+- **Evals:** a labelled set (the sample descriptions plus every reviewer-corrected row) run in CI
+  whenever the prompt, model or rules change, reporting accuracy and a per-category confusion
+  matrix. A change that lowers accuracy fails the build.
+- **Metrics:** AI latency, error and fallback rates, mapping hit rate, token cost, queue depth and
+  job age, quarantine rate by issue code, and review-queue age.
+- **Tracing and alerts:** OpenTelemetry spans from request to job to AI call. Sentry is already
+  wired in. Alerts on fallback spikes, queue backlog and an ageing review queue. Logs stay
+  structured and free of account numbers, as today.
 
 ## Why Django + DRF + PostgreSQL
 

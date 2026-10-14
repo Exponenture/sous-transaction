@@ -159,18 +159,35 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - 2026-10-14 Lead: Codex-side prompts will not be exported; `docs/prompts/` notes this. The
   Builder-drafted handoffs, spec and standing files are the substantive Codex instructions.
 
+- 2026-10-14 Lead: four out-of-scope architecture items discussed with the SOUS interviewer are
+  recorded under *Future architecture* (async enrichment, learned mappings, queue + retries,
+  evals + observability) and in the README. They replace the narrower deferred items for a category
+  cache, async categorisation and an accuracy eval.
+
 ## Open questions for Lead
 - Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b, 9, 10 once satisfied; Tester to tick 3.
 - Make the repo public (history and published files scanned: no secrets, no tracked `.env`).
 
+## Future architecture (out of scope; discussed with the SOUS interviewer)
+Recorded 2026-10-14 by the Lead as the next architectural steps; detail in README "Future architecture".
+1. **Fast acknowledgement, async enrichment:** POST stores/quarantines and returns at once with
+   `categorisation_status: "pending"`; categorisation runs as a job queued in `on_commit`. Callers
+   like a Stripe webhook never wait on the AI or hold the connection open.
+2. **Learned category mappings:** a `CategoryMapping` table on a normalised description, checked
+   before the AI. The AI is only called on a missing mapping, every answer is saved, and reviewer
+   corrections override. Lookup order: known mapping, AI, keyword rules.
+3. **Queue + retries:** idempotent jobs keyed by transaction id; exponential backoff with jitter on
+   timeouts/429/5xx; rules fallback and dead-letter after the last attempt; provider rate limiting.
+4. **Evals + observability:** labelled eval set run in CI on prompt/model/rules changes; metrics for
+   AI latency/errors/fallbacks, mapping hit rate, cost, queue depth, quarantine and review-queue
+   age; OpenTelemetry tracing and alerts.
+
 ## Deferred (next PRs)
 - Per-owner scoping in the admin (review R8).
-- Review API; description-level category cache; async categorisation; CSV import (skipped at the
-  SOUS reviewer's request).
+- Review API; CSV import (skipped at the SOUS reviewer's request).
 - 404 responses use error code `"error"` (and an empty message for a malformed id) instead of
   `"not_found"`; comes from `core/exceptions.py` in the scaffold. Small fix + Tester case.
-- Labelled accuracy eval for the LLM categoriser (run in CI on prompt changes); few-shot examples
-  if accuracy slips on real merchant text.
+- Few-shot examples in the prompt if accuracy slips on real merchant text (measure with the evals below).
 - Model-reported uncertainty (e.g. `uncertain` flag ⇒ review label) — needs a spec change.
 - Tester: one case for a body nested ~2000+ levels (JSON-parser path of AM8b) returning 400.
 - Local Docker dev DB has `smoke` and `smoke2` users (random, unsaved passwords) from manual
