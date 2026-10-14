@@ -174,6 +174,14 @@ The original request (`raw_payload`) is read-only. The admin can't add or delete
 
 ## Why Django + DRF + PostgreSQL
 
+I chose this stack to match SOUS's own (Django/DRF and PostgreSQL, per the SOUS profile on
+OfferZen), so the code can be read in the team's idioms and judged on how it would fit their
+codebase. It is not my native stack; day to day I build in TypeScript/Node with Supabase. I leaned on
+Django's conventions and on the AI workflow below, and I'd ask for some latitude on Django-specific
+detail in a code walk-through.
+
+It also suits the problem:
+
 - **Django/DRF** gives the parts this problem needs without assembling them: ORM and migrations,
   database constraints declared on the model, an admin that is the review UI, JWT auth, pagination,
   and OpenAPI generation. Its conventions (thin views, services, explicit serializers) keep a small
@@ -213,8 +221,11 @@ The work was split across AI agents with separated duties, with a human lead app
 - **Reviewer (Codex, fresh thread):** adversarial PR review with
   [`docs/prompts/adversarial-review.md`](docs/prompts/adversarial-review.md).
 
-Prompts in the repo:
+All prompts are in [`docs/prompts/`](docs/prompts/README.md):
+- [Every prompt the Lead gave the Builder](docs/prompts/builder-session.md), verbatim and in order
+- [Builder → Codex handoffs](docs/prompts/codex-handoffs.md) and the
+  [review prompt](docs/prompts/adversarial-review.md); Codex's [test plan](docs/prompts/codex-test-plan.md)
+  and [review output](docs/prompts/reviews/)
 - Runtime categorisation prompt: [`backend/transactions/prompts/categorise.md`](backend/transactions/prompts/categorise.md)
-- Agent instructions: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md); the spec
+- Standing agent instructions: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md); the spec
   [`NOTES.md`](NOTES.md) is the prompt both Builder and Tester work from
-- Review prompt: [`docs/prompts/adversarial-review.md`](docs/prompts/adversarial-review.md)
