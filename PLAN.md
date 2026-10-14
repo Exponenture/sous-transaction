@@ -83,12 +83,13 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   re-runs the API validation on the stored fields, so a row also needs a `transaction_id`,
   `currency` and `category` before it can be approved; existing warnings are kept. Flag for Lead.
 
+- 2026-10-14 Lead: commit `files/transaction_history.csv` as reference data (not imported by the app).
+
 ## Open questions for Lead
 - README: add your own reasoning for choosing Django/Postgres (brief asks for the candidate's view);
   the README currently gives a neutral technical rationale.
 - Brief asks for the AI-coding prompts used: export the Claude Code / Codex session prompts into
   `docs/prompts/` (agents can't reconstruct them faithfully).
-- Commit `files/transaction_history.csv` as reference data, or keep it out of the repo?
 
 ## Deferred (next PRs)
 - Review API; description-level category cache; async categorisation; CSV import.
