@@ -50,8 +50,9 @@ def _replay(existing: Transaction, payload: dict) -> tuple[Transaction, bool]:
 
 def submit_transaction(*, owner, payload: dict) -> tuple[Transaction, bool]:
     """Store a submission (clean or quarantined). Returns (row, created); replays aren't created."""
+    payload, issues = validation.sanitise(payload)
     parsed = validation.validate(payload, now=timezone.now())
-    values, issues = parsed.values, parsed.issues
+    values, issues = parsed.values, issues + parsed.issues
     key = values["transaction_id"]
     if key is not None:
         existing = Transaction.objects.filter(owner=owner, transaction_id=key).first()
