@@ -129,6 +129,10 @@ and append the commit SHA. Agents never tick **Lead** boxes.
 - Brief asks for the AI-coding prompts used: export the Claude Code / Codex session prompts into
   `docs/prompts/` (agents can't reconstruct them faithfully).
 
+- 2026-10-14 Tester: added 15 AM8 contracts in `test_transaction_unstorable_bodies.py`;
+  4 pass and 11 fail for the pending collision/depth fixes. Small synthetic
+  fixtures only; no application code or Lead checklist steps changed.
+
 ## Deferred (next PRs)
 - Per-owner scoping in the admin (review R8).
 - Review API; description-level category cache; async categorisation; CSV import.
