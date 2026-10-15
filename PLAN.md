@@ -62,6 +62,7 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   | R10 | (round 2) NUL replacement can make keys collide; one value silently lost | **fixed** `9c57451` | AM8(a): 400, nothing stored; reproduced |
   | R11 | (round 2) Deep nesting (≥600) → RecursionError → 500 | **fixed** `9c57451` | AM8(b): > 32 levels → 400, iterative check; reproduced over HTTP. Bodies ~1000+ deep failed inside json.loads before our check, so a depth-safe parser maps RecursionError to the same 400 (checked to 100,000 levels) |
   | CI | Docker smoke job: first request reset (api reported ready before gunicorn listened) | **fixed** `bdecc3d` | api healthcheck; verified CI-style locally |
+  | R12 | (final review) Admin approve/reject declared no permission: view-only staff could reject/approve and be recorded as reviewer | **fixed** `777694f` | `permissions=["change"]` on both actions; reproduced, then verified hidden and refused for view-only staff |
 - [x] 10. PR walked by risk, squash-merged, `PLAN.md` deferred list copied to the next task — **Lead**
   - PRs #1–#3 merged. For this task `main` keeps per-step commits instead of squashes (the brief scores
     commit history); see the history-restore decision.
@@ -163,6 +164,9 @@ and append the commit SHA. Agents never tick **Lead** boxes.
   recorded under *Future architecture* (async enrichment, learned mappings, queue + retries,
   evals + observability) and in the README. They replace the narrower deferred items for a category
   cache, async categorisation and an accuracy eval.
+
+- 2026-10-15 Lead: final adversarial review (Codex) found R12 (admin actions open to view-only
+  staff); triaged fix. Tester tests `8440c0a`, fix `777694f`; 293 tests pass.
 
 ## Open questions for Lead
 - Tick Lead steps 1, 2, 4, 5, 6, 7, 7a, 7b, 9, 10 once satisfied; Tester to tick 3.
