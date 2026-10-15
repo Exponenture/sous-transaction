@@ -76,11 +76,13 @@ class TransactionAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False  # reject instead; keeps the audit trail
 
-    @admin.action(description="Approve selected (re-validate, quarantined only)")
+    @admin.action(
+        description="Approve selected (re-validate, quarantined only)", permissions=["change"]
+    )
     def approve(self, request, queryset):
         self._review(request, queryset, services.approve_transaction, "approved")
 
-    @admin.action(description="Reject selected (quarantined only)")
+    @admin.action(description="Reject selected (quarantined only)", permissions=["change"])
     def reject(self, request, queryset):
         self._review(request, queryset, services.reject_transaction, "rejected")
 
