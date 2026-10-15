@@ -182,6 +182,13 @@ Recorded 2026-10-14 by the Lead as the next architectural steps; detail in READM
    AI latency/errors/fallbacks, mapping hit rate, cost, queue depth, quarantine and review-queue
    age; OpenTelemetry tracing and alerts.
 
+- 2026-10-15 Tester: added four admin action authorization contracts on
+  `fix/admin-action-permissions`. View-only staff must neither see nor execute
+  approve/reject; crafted POSTs must preserve status, issues, raw input, review
+  metadata and update time. Change-only staff positive controls pass. Targeted
+  run: 15 passed, 2 failed, reproducing the authorization bug; no application
+  code changed and no Lead checklist steps ticked.
+
 ## Deferred (next PRs)
 - Per-owner scoping in the admin (review R8).
 - Review API; CSV import (skipped at the SOUS reviewer's request).

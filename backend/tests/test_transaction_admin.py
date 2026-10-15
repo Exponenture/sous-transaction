@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from django.apps import apps
+from django.contrib.auth.models import Permission
 from django.contrib.messages import ERROR, get_messages
 from django.test import Client
 from django.urls import reverse
@@ -183,3 +184,71 @@ def test_rejected_row_is_retrievable_and_replay_preserves_review_status(
     replay = auth_client.post(url, review_row.raw_payload, format="json")
     assert replay.status_code == 200
     assert replay.json()["status"] == "rejected"
+
+
+@pytest.mark.parametrize("verb", ["approve", "reject"])
+def test_view_only_staff_cannot_run_review_actions(review_row, verb):
+    user = UserFactory(is_staff=True, is_superuser=False)
+    user.user_permissions.add(
+        Permission.objects.get(content_type__app_label="transactions", codename="view_transaction")
+    )
+    client = Client()
+    client.force_login(user)
+    # Approval must otherwise succeed, so validation cannot mask missing authorization.
+    if verb == "approve":
+        type(review_row).objects.filter(pk=review_row.pk).update(amount=Decimal("-12.50"))
+    review_row.refresh_from_db()
+    original = {
+        field: getattr(review_row, field)
+        for field in (
+            "status",
+            "issues",
+            "raw_payload",
+            "reviewed_by_id",
+            "reviewed_at",
+            "updated_at",
+        )
+    }
+    page = client.get(list_url())
+    assert page.status_code == 200
+    form = page.context["action_form"]
+    visible_actions = [] if form is None else [value for value, _ in form.fields["action"].choices]
+    # Submit a crafted POST even if the UI correctly hides the action.
+    response = client.post(
+        list_url(),
+        {
+            "action": verb,
+            "_selected_action": str(review_row.pk),
+            "index": "0",
+        },
+        follow=True,
+    )
+    assert response.status_code in (200, 403)
+    review_row.refresh_from_db()
+    assert {field: getattr(review_row, field) for field in original} == original
+    assert verb not in visible_actions
+
+
+@pytest.mark.parametrize(
+    "verb,expected_status", [("approve", "categorised"), ("reject", "rejected")]
+)
+def test_staff_with_change_permission_can_review_without_superuser(
+    review_row, verb, expected_status
+):
+    user = UserFactory(is_staff=True, is_superuser=False)
+    user.user_permissions.add(
+        Permission.objects.get(
+            content_type__app_label="transactions", codename="change_transaction"
+        )
+    )
+    client = Client()
+    client.force_login(user)
+    if verb == "approve":
+        type(review_row).objects.filter(pk=review_row.pk).update(amount=Decimal("-12.50"))
+    before = timezone.now()
+    response = run_action(client, review_row, verb)
+    assert response.status_code == 200
+    review_row.refresh_from_db()
+    assert review_row.status == expected_status
+    assert review_row.reviewed_by_id == user.pk
+    assert before <= review_row.reviewed_at <= timezone.now()
